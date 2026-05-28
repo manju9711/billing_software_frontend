@@ -593,7 +593,7 @@ export default function CompanyList() {
                       <div className="cl-company-cell">
                         <div className="cl-avatar">
                           {c.logo
-                            ? <img src={`${API_BASE_URL}${c.logo}`} alt={c.company_name} />
+                            ? <img src={`${API_BASE_URL}/${c.logo}`} alt={c.company_name} />
                             : getInitials(c.company_name)
                           }
                         </div>

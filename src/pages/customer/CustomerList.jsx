@@ -2095,7 +2095,7 @@ borderBottom: "1px solid #f1f5f9",
       billing or payment history yet.
     </p>
 
-    <button
+    {/* <button
       onClick={() => navigate("/billing")}
       style={{
         marginTop: 20,
@@ -2109,7 +2109,7 @@ borderBottom: "1px solid #f1f5f9",
       }}
     >
       + Create Bill
-    </button>
+    </button> */}
 
   </div>
 
