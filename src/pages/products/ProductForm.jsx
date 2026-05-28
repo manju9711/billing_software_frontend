@@ -43,6 +43,7 @@ export default function ProductForm() {
   const [gstEnabled, setGstEnabled] = useState(false);
   const [gstLoading, setGstLoading] = useState(true);
   const { toasts, show, remove } = useToast();
+  const [existingCodes, setExistingCodes] = useState([]);
 
   const [form, setForm] = useState({
     name: "", product_code: "", price: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
@@ -88,10 +89,31 @@ export default function ProductForm() {
       console.error("Category fetch error:", err);
     }
   };
+  const fetchProducts = async () => {
+  try {
+    const company_id = getCompanyId();
+    if (!company_id) return;
+
+    const res = await api.get(
+      `/product/get.php?company_id=${company_id}`
+    );
+
+    if (res.data.status) {
+      const codes = res.data.data.map(
+        p => (p.product_code || "").toUpperCase()
+      );
+
+      setExistingCodes(codes);
+    }
+  } catch (err) {
+    console.error("Product fetch error:", err);
+  }
+};
 
   useEffect(() => {
     fetchCategories();
     fetchCompanyGST();
+    fetchProducts();
   }, []);
 
   const generateBarcode = () => {
@@ -113,6 +135,18 @@ export default function ProductForm() {
       show("warn", "Invalid GST", "Please enter a valid GST percentage (0–100).");
       return;
     }
+    // Product Code Already Exists Validation
+if (
+  form.product_code.trim() &&
+  existingCodes.includes(form.product_code.trim().toUpperCase())
+) {
+  show(
+    "error",
+    "Duplicate Product Code",
+    "Product code already exists."
+  );
+  return;
+}
 
     setLoading(true);
     try {
@@ -437,13 +471,16 @@ export default function ProductForm() {
     <span className="pf-input-icon">🔢</span>
 
     <input
-      className="pf-input"
-      placeholder="e.g. PRD001"
-      value={form.product_code}
-      onChange={e =>
-        set("product_code", e.target.value)
-      }
-    />
+  className="pf-input"
+  placeholder="e.g. PRD001"
+  value={form.product_code}
+  onChange={e =>
+    set(
+      "product_code",
+      e.target.value.toUpperCase().replace(/\s/g, "")
+    )
+  }
+/>
   </div>
 </div>
 
