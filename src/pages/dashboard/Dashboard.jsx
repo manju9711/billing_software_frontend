@@ -137,13 +137,39 @@ export default function Dashboard() {
     finally { setLoading(false); }
   };
 
-  const fetchLowStockProducts = async () => {
-    try {
-      const res = await api.get(`/product/get.php?company_id=${getCompanyId()}`);
-      if (res.data.status) setLowStockProducts(res.data.data.filter(p => p.stock <= 5));
-    } catch (e) { console.error(e); }
-  };
+  // const fetchLowStockProducts = async () => {
+  //   try {
+  //     const res = await api.get(`/product/get.php?company_id=${getCompanyId()}`);
+  //     if (res.data.status) setLowStockProducts(res.data.data.filter(p => p.stock <= 5));
+  //   } catch (e) { console.error(e); }
+  // };
 
+ 
+ const fetchLowStockProducts = async () => {
+  try {
+
+    const res = await api.get(
+      `/product/get.php?company_id=${getCompanyId()}`
+    );
+
+    if (res.data.status) {
+
+      // ACTIVE PRODUCTS ONLY
+      const activeLowStock = res.data.data.filter(
+        (p) =>
+          p.status === "active" &&
+          Number(p.stock) <= 5
+      );
+
+      setLowStockProducts(activeLowStock);
+    }
+
+  } catch (e) {
+
+    console.error(e);
+
+  }
+};
   const fetchCreditDashboard = async () => {
     try {
       const res = await api.get(`/dashboard/get_dashboard.php?company_id=${getCompanyId()}`);
