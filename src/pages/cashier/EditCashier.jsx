@@ -9,6 +9,7 @@ export default function EditCashier() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState("");
+  const [toast, setToast] = useState(null);
 
   const fetchCashier = async () => {
     const res = await api.post("/cashier/get_cashier_by_id.php", { id });
@@ -16,20 +17,82 @@ export default function EditCashier() {
       setForm({ name: res.data.data.name, email: res.data.data.email, password: "" });
     }
   };
+const showToast = (msg, ok = true) => {
 
+  setToast({ msg, ok });
+
+  setTimeout(() => {
+    setToast(null);
+  }, 3000);
+
+};
   useEffect(() => { fetchCashier(); }, []);
 
-  const handleUpdate = async () => {
-    setLoading(true);
-    const res = await api.post("/cashier/update_cashier.php", {
-      id, name: form.name, email: form.email, password: form.password
-    });
-    setLoading(false);
+ const handleUpdate = async () => {
+
+  if (!form.name.trim()) {
+    showToast("Name is required", false);
+    return;
+  }
+
+  if (!form.email.trim()) {
+    showToast("Email is required", false);
+    return;
+  }
+
+  if (!/\S+@\S+\.\S+/.test(form.email)) {
+    showToast("Enter valid email", false);
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+
+    const res = await api.post(
+      "/cashier/update_cashier.php",
+      {
+        id,
+        name: form.name,
+        email: form.email,
+        password: form.password
+      }
+    );
+
     if (res.data.status) {
-      alert("Updated ✅");
-      navigate("/cashier");
+
+      showToast(
+        res.data.message || "Cashier updated successfully!",
+        true
+      );
+
+      setTimeout(() => {
+        navigate("/cashier");
+      }, 1500);
+
+    } else {
+
+      showToast(
+        res.data.message || "Failed to update cashier",
+        false
+      );
+
     }
-  };
+
+  } catch (err) {
+
+    console.error(err);
+
+    showToast(
+      "Server error. Try again.",
+      false
+    );
+
+  }
+
+  setLoading(false);
+
+};
 
   return (
     <>
@@ -336,8 +399,66 @@ export default function EditCashier() {
           padding: 3px 9px;
           margin-bottom: 1.25rem;
         }
+
+        @keyframes ec-toast {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
       `}</style>
 
+{/* TOAST */}
+
+{toast && (
+
+  <div
+    style={{
+      position: "fixed",
+      top: 20,
+      right: 20,
+      zIndex: 99999,
+      background: toast.ok
+        ? "linear-gradient(135deg,#2563eb,#3b82f6)"
+        : "linear-gradient(135deg,#dc2626,#ef4444)",
+      color: "#fff",
+      padding: "13px 18px",
+      borderRadius: 14,
+      boxShadow: "0 10px 30px rgba(0,0,0,.15)",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      fontWeight: 600,
+      fontSize: 14,
+      animation: "ec-toast .25s ease"
+    }}
+  >
+
+    <div
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: 7,
+        background: "rgba(255,255,255,.2)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 12,
+        fontWeight: 700
+      }}
+    >
+      {toast.ok ? "✓" : "✕"}
+    </div>
+
+    {toast.msg}
+
+  </div>
+
+)}
       <div className="ec-wrapper">
         <div className="ec-blob ec-blob-1" />
         <div className="ec-blob ec-blob-2" />
