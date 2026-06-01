@@ -17,8 +17,18 @@ export default function CustomerForm() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const showToast = (msg, ok = true) => {
+
+  setToast({ msg, ok });
+
+  setTimeout(() => {
+    setToast(null);
+  }, 3000);
+
+};
 
   const handleSubmit = async () => {
 
@@ -28,17 +38,17 @@ export default function CustomerForm() {
 
     /* ✅ VALIDATION */
     if (!form.name.trim()) {
-      alert("Customer name is required");
+     showToast("Customer name is required", false);
       return;
     }
 
     if (!/^[0-9]{10}$/.test(form.phone)) {
-      alert("Enter valid 10 digit mobile number");
+    showToast("Enter valid 10 digit mobile number", false);
       return;
     }
 
     if (!company_id) {
-      alert("Company not found. Please login again.");
+     showToast("Company not found. Please login again.", false);
       return;
     }
 
@@ -61,22 +71,98 @@ export default function CustomerForm() {
 
       const res = await api.post("/customer/create_customer.php", payload);
 
-      if (res.data.status) {
-        alert("Customer created successfully!");
-        navigate("/customer");
-      } else {
-        alert(res.data.message || "Failed to create");
-      }
+     if (res.data.status) {
+
+  showToast(
+    "Customer created successfully!",
+    true
+  );
+
+  setTimeout(() => {
+
+    navigate("/customer");
+
+  }, 1500);
+
+} else {
+
+  showToast(
+    res.data.message || "Failed to create",
+    false
+  );
+
+}
 
     } catch (err) {
       console.error(err);
-      alert("Server error");
+     
+  showToast("Server error", false);
     }
 
     setLoading(false);
   };
 
   return (
+    <>
+    {/* TOAST */}
+
+{toast && (
+
+  <div
+    style={{
+      position: "fixed",
+      top: 20,
+      right: 20,
+      zIndex: 99999,
+      background: toast.ok
+        ? "linear-gradient(135deg,#2563eb,#3b82f6)"
+        : "linear-gradient(135deg,#dc2626,#ef4444)",
+      color: "#fff",
+      padding: "13px 18px",
+      borderRadius: 14,
+      boxShadow: "0 10px 30px rgba(0,0,0,.15)",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      fontWeight: 600,
+      fontSize: 14,
+      animation: "toastIn .25s ease"
+    }}
+  >
+
+    <div
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: 7,
+        background: "rgba(255,255,255,.2)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 12,
+        fontWeight: 700
+      }}
+    >
+      {toast.ok ? "✓" : "✕"}
+    </div>
+
+    {toast.msg}
+
+  </div>
+
+)}
+<style>{`
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+`}</style>
     <div style={{
       minHeight: "100vh",
       background: "#eef2f7",
@@ -218,6 +304,7 @@ export default function CustomerForm() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

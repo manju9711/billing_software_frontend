@@ -1124,6 +1124,8 @@ export default function CustomerList() {
   const [invoiceHistory, setInvoiceHistory] = useState([]);
 
   const [allHistory, setAllHistory] = useState([]);
+  const [toast, setToast] = useState(null);
+  
 
   // PAYMENT POPUP
 
@@ -1138,6 +1140,16 @@ export default function CustomerList() {
 
   const [paymentMethod, setPaymentMethod] =
     useState("cash");
+
+    const showToast = (msg, ok = true) => {
+
+  setToast({ msg, ok });
+
+  setTimeout(() => {
+    setToast(null);
+  }, 3000);
+
+};
 
   // FETCH CUSTOMERS
 
@@ -1408,7 +1420,7 @@ export default function CustomerList() {
   if (!selectedInvoice) return;
 
   if (!receivedAmount || Number(receivedAmount) <= 0) {
-    alert("Enter valid amount");
+    showToast("Enter valid amount", false);
     return;
   }
 
@@ -1426,14 +1438,16 @@ export default function CustomerList() {
     console.log("FULL RESPONSE =", res);
     console.log("DATA =", res.data);
 
-    alert(JSON.stringify(res.data));
+    // alert(JSON.stringify(res.data));
 
     if (res.data.status) {
 
-      alert(
-        res.data.message ||
-        "Payment Updated Successfully"
-      );
+     showToast(
+  res.data.message ||
+  "Payment Updated Successfully",
+  true
+);
+
 
       setShowPaymentPopup(false);
 
@@ -1445,10 +1459,11 @@ export default function CustomerList() {
 
     } else {
 
-      alert(
-        res.data.message ||
-        "Something went wrong"
-      );
+     showToast(
+  res.data.message ||
+  "Something went wrong",
+  false
+);
 
     }
 
@@ -1458,9 +1473,9 @@ export default function CustomerList() {
 
     if (err.response) {
       console.log("ERROR RESPONSE =", err.response.data);
-      alert(JSON.stringify(err.response.data));
+      // alert(JSON.stringify(err.response.data));
     } else {
-      alert("Server Error");
+     showToast("Server Error", false);
     }
 
   }
@@ -1468,7 +1483,67 @@ export default function CustomerList() {
 };
 
   return (
+<>
 
+<style>{`
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+`}</style>
+{/* TOAST */}
+
+{toast && (
+
+  <div
+    style={{
+      position: "fixed",
+      top: 20,
+      right: 20,
+      zIndex: 99999,
+      background: toast.ok
+        ? "linear-gradient(135deg,#2563eb,#3b82f6)"
+        : "linear-gradient(135deg,#dc2626,#ef4444)",
+      color: "#fff",
+      padding: "13px 18px",
+      borderRadius: 14,
+      boxShadow: "0 10px 30px rgba(0,0,0,.15)",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      fontWeight: 600,
+      fontSize: 14,
+      animation: "toastIn .25s ease"
+    }}
+  >
+
+    <div
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: 7,
+        background: "rgba(255,255,255,.2)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 12,
+        fontWeight: 700
+      }}
+    >
+      {toast.ok ? "✓" : "✕"}
+    </div>
+
+    {toast.msg}
+
+  </div>
+
+)}
     <div
       style={{
         minHeight: "100vh",
@@ -2261,7 +2336,7 @@ borderBottom: "1px solid #f1f5f9",
       )}
 
     </div>
-
+</>
   );
 
 }
