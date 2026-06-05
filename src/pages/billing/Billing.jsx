@@ -1,8 +1,4 @@
 
-
-
-
-
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -367,18 +363,20 @@ const pendingBalance =
       const pending = parseFloat(fresh.pending_amount)  || 0;
       const pts     = parseInt(fresh.loyalty_points)    || 0;
 
-      setCustomer({
-        id:              fresh.id,
-        name:            fresh.name,
-        phone:           fresh.phone,
-        gst_no:          fresh.gst_no         || "",
-        credit_enabled:  fresh.credit_enabled || "0",
-        credit_limit:    fresh.credit_limit   || 0,
-        points:          pts,
-        advance_balance: adv,
-        pending_amount:  pending,
-      });
+  setCustomer({
+  id: fresh.id,
+  name: fresh.name,
+  phone: fresh.phone,
 
+  // Company GSTIN Auto Fill
+  gst_no: fresh.company_gstin || "",
+
+  credit_enabled: fresh.credit_enabled || "0",
+  credit_limit: fresh.credit_limit || 0,
+  points: pts,
+  advance_balance: adv,
+  pending_amount: pending,
+});
       // Build toast message
       const msgs = [];
       if (pts     > 0) msgs.push(`${pts} loyalty pts`);
@@ -686,13 +684,18 @@ const pendingBalance =
         {/* ══════════════════════════════════════════════
             CUSTOMER CARD
         ══════════════════════════════════════════════ */}
-        <div style={{
-          background:"#fff", borderRadius:20,
-          boxShadow:"0 4px 24px rgba(99,102,241,.1), 0 1px 4px rgba(0,0,0,.05)",
-          border:"1.5px solid rgba(199,210,254,.5)",
-          padding:"22px 24px", marginBottom:18,
-          animation:"slideDown .4s ease both",
-        }}>
+     <div style={{
+  background:"#fff",
+  borderRadius:20,
+  boxShadow:"0 4px 24px rgba(99,102,241,.1), 0 1px 4px rgba(0,0,0,.05)",
+  border:"1.5px solid rgba(199,210,254,.5)",
+  padding:"22px 24px",
+  marginBottom:18,
+  overflow:"visible",
+  position:"relative",
+  zIndex:1000,
+  animation:"slideDown .4s ease both",
+}}>
           {/* Card Header */}
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -893,15 +896,43 @@ const pendingBalance =
                     letterSpacing: customer.gst_no ? ".05em" : 0,
                   }}
                 />
-                {customer.gst_no && (
-                  <span style={{
-                    position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
-                    fontSize:10, fontWeight:700, color:"#d97706",
-                    background:"#fef3c7", borderRadius:6, padding:"2px 8px", border:"1px solid #fde68a",
-                  }}>
-                    {customer.gst_no.length}/15
-                  </span>
-                )}
+               {customer.gst_no && (
+  <span
+    style={{
+      position:"absolute",
+      right:10,
+      top:"50%",
+      transform:"translateY(-50%)",
+      display:"flex",
+      alignItems:"center",
+      gap:"6px"
+    }}
+  >
+    <span
+      style={{
+        color:"#16a34a",
+        fontWeight:"bold",
+        fontSize:"18px"
+      }}
+    >
+      ✓
+    </span>
+
+    <span
+      style={{
+        fontSize:10,
+        fontWeight:700,
+        color:"#d97706",
+        background:"#fef3c7",
+        borderRadius:6,
+        padding:"2px 8px",
+        border:"1px solid #fde68a",
+      }}
+    >
+      {customer.gst_no.length}/15
+    </span>
+  </span>
+)}
               </div>
               <div style={{ fontSize:11, color:"#94a3b8", marginTop:5, fontWeight:400 }}>
                 Format: 2-digit state code + PAN + entity + Z + checksum (15 chars)
@@ -913,13 +944,17 @@ const pendingBalance =
         {/* ══════════════════════════════════════════════
             PRODUCTS CARD
         ══════════════════════════════════════════════ */}
-        <div style={{
-          background:"#fff", borderRadius:20,
-          boxShadow:"0 4px 24px rgba(99,102,241,.1), 0 1px 4px rgba(0,0,0,.05)",
-          border:"1.5px solid rgba(199,210,254,.5)",
-          marginBottom:18, overflow:"visible",
-          animation:"slideDown .4s ease .05s both",
-        }}>
+       <div style={{
+  background:"#fff",
+  borderRadius:20,
+  boxShadow:"0 4px 24px rgba(99,102,241,.1), 0 1px 4px rgba(0,0,0,.05)",
+  border:"1.5px solid rgba(199,210,254,.5)",
+  marginBottom:18,
+  overflow:"visible",
+  position:"relative",
+  zIndex:1,
+  animation:"slideDown .4s ease .05s both",
+}}>
           <div style={{
             padding:"18px 24px 14px", borderBottom:"1.5px solid #f1f5f9",
             display:"flex", alignItems:"center", justifyContent:"space-between",
