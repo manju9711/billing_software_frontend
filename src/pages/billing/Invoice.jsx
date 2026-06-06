@@ -749,6 +749,11 @@ const balance = invoice.paid_amount - invoice.total_amount;
 </div>
 
 <div style={S.row}>
+  <span>Total</span>
+  <span>₹{Number(invoice.total_amount || 0).toFixed(2)}</span>
+</div>
+
+<div style={S.row}>
   <span>Paid</span>
   <span>₹{invoice.paid_amount}</span>
 </div>
@@ -756,6 +761,20 @@ const balance = invoice.paid_amount - invoice.total_amount;
   <span>{balance < 0 ? "Balance" : "Balance"}</span>
   <span>₹{Math.abs(balance).toFixed(2)}</span>
 </div>
+<div style={S.row}>
+  <span>Previous Balance</span>
+  <span>₹{Number(invoice.previous_balance || 0).toFixed(2)}</span>
+</div>
+
+<div style={S.row}>
+  <span>Current Balance</span>
+  <span>₹{Number(invoice.current_balance || 0).toFixed(2)}</span>
+</div>
+
+{/* <div style={S.row}>
+  <span>Total Pending</span>
+  <span>₹{Number(invoice.total_pending || 0).toFixed(2)}</span>
+</div> */}
 
 
       <div style={S.divider} />
