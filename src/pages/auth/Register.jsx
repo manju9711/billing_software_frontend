@@ -58,7 +58,7 @@ export default function Register() {
             <UserPlus size={24} color="white" />
           </div>
           <h2 className="text-2xl font-black text-gray-800">Register</h2>
-          <p className="text-[11px] text-gray-400 font-medium">Create your SmartLedger account</p>
+          <p className="text-[11px] text-gray-400 font-medium">Create your account</p>
         </div>
 
         <div className="space-y-3">
