@@ -24,10 +24,7 @@ export default function Login() {
           role: role,
           company_id: userData.company_id || null,
         };
-       if (role === "cashier" && !user.company_id) {
-  alert("Company ID missing!");
-  return;
-}
+
         localStorage.setItem("user", JSON.stringify(user));
         console.log("LOGIN USER 👉", user);
         if (role === "superadmin") navigate("/company");
