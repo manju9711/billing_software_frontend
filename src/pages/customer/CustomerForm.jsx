@@ -1,10 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function CustomerForm() {
 
   const navigate = useNavigate();
+const [companies, setCompanies] = useState([]);
+const [selectedCompany, setSelectedCompany] = useState(
+  localStorage.getItem("selected_company_id") || ""
+);
+
+const loadCompanies = async () => {
+
+  try {
+
+    const user = JSON.parse(
+      localStorage.getItem("user")
+    );
+
+    const res = await api.get(
+      `/company/get_companies_by_admin.php?admin_id=${user.id}`
+    );
+
+    if (res.data.status) {
+      setCompanies(res.data.data);
+    }
+
+  } catch (err) {
+    console.log(err);
+  }
+
+};
+
+useEffect(() => {
+  loadCompanies();
+}, []);
 
   const [form, setForm] = useState({
     name: "",
@@ -33,9 +63,7 @@ export default function CustomerForm() {
   const handleSubmit = async () => {
 
     /* 🔥 GET COMPANY ID FROM LOCALSTORAGE */
-    const user = JSON.parse(localStorage.getItem("user"));
-    const company_id = Number(user?.company_id);
-
+  const company_id = Number(selectedCompany);
     /* ✅ VALIDATION */
     if (!form.name.trim()) {
      showToast("Customer name is required", false);
@@ -47,11 +75,15 @@ export default function CustomerForm() {
       return;
     }
 
-    if (!company_id) {
-     showToast("Company not found. Please login again.", false);
-      return;
-    }
+ if (!selectedCompany) {
 
+  showToast(
+    "Please select a company",
+    false
+  );
+
+  return;
+}
     setLoading(true);
 
     try {
@@ -193,6 +225,76 @@ export default function CustomerForm() {
           </p>
         </div>
 
+
+<div style={{ marginBottom: 12 }}>
+
+  <label
+    style={{
+      display: "block",
+      marginBottom: 6,
+      fontSize: 13,
+      fontWeight: 600,
+      color: "#475569"
+    }}
+  >
+    Select Company
+  </label>
+
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      background: "#f8fafc",
+      border: "1px solid #dbeafe",
+      borderRadius: 14,
+      padding: "0 12px",
+      height: 50
+    }}
+  >
+    <span style={{ marginRight: 8 }}>
+      🏢
+    </span>
+
+    <select
+      value={selectedCompany}
+      onChange={(e) => {
+
+        setSelectedCompany(e.target.value);
+
+        localStorage.setItem(
+          "selected_company_id",
+          e.target.value
+        );
+
+      }}
+      style={{
+        flex: 1,
+        border: "none",
+        outline: "none",
+        background: "transparent",
+        fontSize: 14,
+        fontWeight: 600,
+        cursor: "pointer"
+      }}
+    >
+      <option value="">
+        Select Company
+      </option>
+
+      {companies.map((c) => (
+        <option
+          key={c.id}
+          value={c.id}
+        >
+          {c.company_name}
+        </option>
+      ))}
+
+    </select>
+
+  </div>
+
+</div>
         {/* FORM */}
         <div style={{ padding: 20 }}>
 
