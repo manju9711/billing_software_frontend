@@ -19,7 +19,7 @@ export default function CompanyRequest() {
       setLoading(true);
 
       const res = await api.post(
-        "/company/get_company_requests.php"
+        "/CompanyRequest/get_company_requests.php"
       );
 
       if (res.data.status) {
@@ -42,7 +42,7 @@ export default function CompanyRequest() {
       setActionLoading(requestId);
 
       const res = await api.post(
-        "/company/approve_company_request.php",
+        "/CompanyRequest/approve_company_request.php",
         {
           request_id: requestId,
         }
@@ -75,7 +75,7 @@ export default function CompanyRequest() {
       setActionLoading(requestId);
 
       const res = await api.post(
-        "/company/reject_company_request.php",
+        "/CompanyRequest/reject_company_request.php",
         {
           request_id: requestId,
         }
@@ -132,16 +132,16 @@ export default function CompanyRequest() {
         }}
       >
         <div>
-          <h1
+          <h2
             style={{
               margin: 0,
               color: "#0f172a",
-              fontSize: 42,
-              fontWeight: 800,
+              fontSize: 32,
+              fontWeight: 700,
             }}
           >
             Pending Company Requests
-          </h1>
+          </h2>
 
           <p
             style={{
@@ -188,7 +188,7 @@ export default function CompanyRequest() {
             <div
               style={{
                 color: "#64748b",
-                fontSize: 15,
+                fontSize: 13,
               }}
             >
               Total Requests
@@ -272,8 +272,8 @@ export default function CompanyRequest() {
         >
           <div>Company</div>
           <div>Requested By</div>
-          <div>Owner</div>
-          <div>Email</div>
+          {/* <div>Owner</div> */}
+          {/* <div>Email</div> */}
           <div>Actions</div>
         </div>
 
@@ -373,25 +373,25 @@ export default function CompanyRequest() {
 
               {/* OWNER */}
 
-              <div
+              {/* <div
                 style={{
                   fontWeight: 700,
                   fontSize: 17,
                 }}
               >
                 {item.owner_name}
-              </div>
+              </div> */}
 
               {/* EMAIL */}
 
-              <div
+              {/* <div
                 style={{
                   color: "#475569",
                   fontSize: 17,
                 }}
               >
                 {item.owner_email}
-              </div>
+              </div> */}
 
               {/* ACTIONS */}
 
