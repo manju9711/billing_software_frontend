@@ -219,9 +219,24 @@ export default function CompanyList() {
   const [currentPage, setCurrentPage] = useState(1);
   // const [deleteId, setDeleteId] = useState(null);
 
+  const MAX_COMPANIES = 3;
+
+const isLimitReached =
+  companies.length >= MAX_COMPANIES;
+
   const fetchCompanies = async () => {
     try {
-      const res = await api.get("/company/get_companies.php");
+      // const res = await api.get("/company/get_companies.php");
+      const user = JSON.parse(
+  localStorage.getItem("user")
+);
+
+const res = await api.post(
+  "/company/get_companies.php",
+  {
+    admin_id: user.id
+  }
+);
       if (res.data.status) setCompanies(res.data.data);
     } catch (err) {
       console.error(err);
@@ -518,6 +533,42 @@ export default function CompanyList() {
 .cl-switch input:checked + .cl-slider:before {
   transform: translateX(24px);
 }
+
+.cl-add-btn.disabled{
+  opacity:.6;
+  cursor:not-allowed;
+  box-shadow:none;
+}
+
+.cl-limit-note{
+  margin-bottom:18px;
+  background:#fff7ed;
+  border:1px solid #fdba74;
+  color:#c2410c;
+  padding:14px 16px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  font-size:14px;
+  font-weight:500;
+}
+
+.cl-request-btn{
+  border:none;
+  background:linear-gradient(
+    135deg,
+    #ea580c,
+    #f97316
+  );
+  color:#fff;
+  padding:10px 16px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
       `}</style>
 
       <div className="cl-wrap">
@@ -533,10 +584,49 @@ export default function CompanyList() {
               <p className="cl-subtitle">Manage your registered companies</p>
             </div>
           </div>
-          <button className="cl-add-btn" onClick={() => navigate("/company/add")}>
-            + Add Company
-          </button>
+         <button
+  className={`cl-add-btn ${
+    isLimitReached
+      ? "disabled"
+      : ""
+  }`}
+  disabled={isLimitReached}
+  onClick={() => {
+
+    if (!isLimitReached) {
+
+      navigate("/company/add");
+
+    }
+
+  }}
+>
+  + Add Company
+</button>
         </div>
+
+        {isLimitReached && (
+
+  <div className="cl-limit-note">
+
+    <div>
+      Maximum 3 companies only allowed.
+      To add more companies,
+      please send a request.
+    </div>
+
+    <button
+      className="cl-request-btn"
+      onClick={() =>
+        navigate("/company/add")
+      }
+    >
+      Request Company
+    </button>
+
+  </div>
+
+)}
 
         {/* Search */}
         <div className="cl-search-wrap">
