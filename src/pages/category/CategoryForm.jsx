@@ -59,7 +59,7 @@
 //   );
 // }
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
@@ -106,16 +106,74 @@ export default function CategoryForm() {
   const [loading, setLoading] = useState(false);
   const [charCount, setCharCount] = useState(0);
   const { toasts, show, remove } = useToast();
+const [companies,setCompanies] = useState([]);
+const [selectedCompany,setSelectedCompany] = useState(
+  localStorage.getItem("selected_company_id") || ""
+);
+
+
+useEffect(() => {
+
+  const user = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  if(!user?.id) return;
+
+  loadCompanies(user.id);
+
+}, []);
+
+
+const loadCompanies = async(admin_id) => {
+
+  try {
+
+    const res = await api.get(
+      `/company/get_companies_by_admin.php?admin_id=${admin_id}`
+    );
+
+    if(res.data.status){
+
+      setCompanies(res.data.data);
+
+      if(
+        !localStorage.getItem("selected_company_id")
+        &&
+        res.data.data.length > 0
+      ){
+
+        localStorage.setItem(
+          "selected_company_id",
+          res.data.data[0].id
+        );
+
+        setSelectedCompany(
+          res.data.data[0].id
+        );
+      }
+    }
+
+  } catch(err){
+
+    console.log(err);
+
+  }
+
+};
 
   const handleChange = (e) => {
     setName(e.target.value);
     setCharCount(e.target.value.length);
   };
 
-  const handleSubmit = async () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const company_id = Number(user?.company_id);
 
+  const handleSubmit = async () => {
+    // const user = JSON.parse(localStorage.getItem("user"));
+    // const company_id = Number(user?.company_id);
+
+    const company_id =
+Number(selectedCompany);
     if (!name.trim()) {
       show("warn", "Missing field", "Category name is required.");
       return;
@@ -127,7 +185,10 @@ export default function CategoryForm() {
 
     setLoading(true);
     try {
-      const res = await api.post("/category/create.php", { name: name.trim(), company_id });
+      const res = await api.post("/category/create.php",   {
+    name: name.trim(),
+    company_id: company_id
+  });
       if (res.data.status) {
         show("success", "Category added!", `"${name.trim()}" has been created.`);
         setTimeout(() => navigate("/category"), 2000);
@@ -531,6 +592,46 @@ export default function CategoryForm() {
 
           {/* Body */}
           <div className="cf-body">
+
+<div style={{marginBottom:"20px"}}>
+
+  <label className="cf-label">
+    Select Company
+  </label>
+
+  <select
+    className="cf-input"
+    value={selectedCompany}
+    onChange={(e)=>{
+
+      setSelectedCompany(
+        e.target.value
+      );
+
+      localStorage.setItem(
+        "selected_company_id",
+        e.target.value
+      );
+
+    }}
+  >
+
+    <option value="">
+      Select Company
+    </option>
+
+    {companies.map((company)=>(
+      <option
+        key={company.id}
+        value={company.id}
+      >
+        {company.company_name}
+      </option>
+    ))}
+
+  </select>
+
+</div>
 
             {/* Input */}
             <div className="cf-label-row">

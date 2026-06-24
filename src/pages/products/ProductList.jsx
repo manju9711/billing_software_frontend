@@ -12,46 +12,92 @@ export default function ProductList() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+const [companies,setCompanies] = useState([]);
+const [selectedCompany,setSelectedCompany] = useState("");
+
 
   const ITEMS_PER_PAGE = 10;
+const getCompanyId = () => {
 
-  const getCompanyId = () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    return Number(user?.company_id);
-  };
+  return Number(
+    localStorage.getItem("selected_company_id")
+  );
 
-  const fetchProducts = async () => {
+};
 
-    setLoading(true);
 
-    try {
+const loadCompanies = async () => {
 
-      const company_id = getCompanyId();
+  const user = JSON.parse(
+    localStorage.getItem("user")
+  );
 
-      if (!company_id) return;
+  const res = await api.get(
+    `/company/get_companies_by_admin.php?admin_id=${user.id}`
+  );
 
-      const res = await api.get(
-        `/product/get.php?company_id=${company_id}`
-      );
+  if(res.data.status){
 
-      if (res.data.status) {
-        setProducts(res.data.data);
-      }
+    setCompanies(res.data.data);
 
-    } catch (err) {
+  }
 
-      console.error(err);
+};
+const fetchProducts = async(company_id) => {
 
-    } finally {
+  setLoading(true);
 
-      setLoading(false);
+  try {
+
+    const res = await api.get(
+      `/product/get.php?company_id=${company_id}`
+    );
+
+    if(res.data.status){
+
+      setProducts(res.data.data);
 
     }
-  };
+
+  } catch(err){
+
+    console.log(err);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+
+};
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+
+  loadCompanies();
+
+}, []);
+
+const handleCompanyChange = async(e) => {
+
+  const companyId = e.target.value;
+
+  setSelectedCompany(companyId);
+
+  localStorage.setItem(
+    "selected_company_id",
+    companyId
+  );
+
+  if(!companyId){
+
+    setProducts([]);
+    return;
+
+  }
+
+  fetchProducts(companyId);
+
+};
 
   /* TOGGLE STATUS */
 
@@ -418,6 +464,59 @@ export default function ProductList() {
 
         </div>
 
+
+        <div
+  style={{
+    display:"flex",
+    alignItems:"center",
+    width:"320px",
+    background:"#fff",
+    border:"1px solid #dbeafe",
+    borderRadius:"14px",
+    padding:"12px 15px",
+    marginBottom:"15px",
+    boxShadow:"0 4px 16px rgba(37,99,235,.08)"
+  }}
+>
+  <span
+    style={{
+      marginRight:"10px",
+      fontSize:"18px"
+    }}
+  >
+    🏢
+  </span>
+
+  <select
+    value={selectedCompany}
+    onChange={handleCompanyChange}
+    style={{
+      flex:1,
+      border:"none",
+      outline:"none",
+      background:"transparent",
+      fontSize:"14px",
+      fontWeight:"700"
+    }}
+  >
+    <option value="">
+      Select Company
+    </option>
+
+    {companies.map(c => (
+
+      <option
+        key={c.id}
+        value={c.id}
+      >
+        {c.company_name}
+      </option>
+
+    ))}
+
+  </select>
+</div>
+
         {/* SEARCH */}
 
         <div className="pl-toolbar">
@@ -459,7 +558,7 @@ export default function ProductList() {
 
                 <tr>
                   <td colSpan="9">
-                    Loading...
+                    Please Select Your company & show your products
                   </td>
                 </tr>
 

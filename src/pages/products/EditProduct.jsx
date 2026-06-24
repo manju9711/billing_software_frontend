@@ -44,6 +44,8 @@ export default function EditProduct() {
   const [gstLoading, setGstLoading] = useState(true);
   const [barcodeKey, setBarcodeKey] = useState(0);
   const { toasts, show, remove } = useToast();
+const [productCompanyId, setProductCompanyId] = useState("");
+
 
   const [form, setForm] = useState({
     name: "",  product_code: "", price: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
@@ -51,18 +53,11 @@ export default function EditProduct() {
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
-  const getCompanyId = () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    return Number(user?.company_id);
-  };
+const getCompanyId = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  return Number(user?.company_id);
+};
 
-  const fetchCategories = async () => {
-    try {
-      const company_id = getCompanyId();
-      const res = await api.get(`/category/get_all.php?company_id=${company_id}`);
-      if (res.data.status) setCategories(res.data.data);
-    } catch (err) { console.error(err); }
-  };
 
   const fetchCompanyGST = async () => {
     setGstLoading(true);
@@ -87,38 +82,115 @@ export default function EditProduct() {
     }
   };
 
-  const fetchProduct = async () => {
-    setFetching(true);
-    try {
-      const res = await api.get(`/product/get_by_id.php?id=${id}`);
-      if (res.data.status) {
-        const p = res.data.data;
-        setForm({
-          name: p.product_name,
-          product_code: p.product_code || "",
-          price: p.price,
-          stock: p.stock,
-          gst: p.gst_percentage || "",
-          barcode: p.barcode || "",
-          category_id: p.category_id,
-          unit: p.unit || ""
-        });
-      } else {
-        show("error", "Not Found", "Product could not be loaded.");
-      }
-    } catch (err) {
-      console.error(err);
-      show("error", "Server Error", "Failed to fetch product details.");
-    } finally {
-      setFetching(false);
-    }
-  };
+  const fetchCompanyGSTByCompanyId = async(company_id) => {
 
-  useEffect(() => {
-    fetchCategories();
-    fetchProduct();
-    fetchCompanyGST();
-  }, [id]);
+  try {
+
+    const res = await api.post(
+      "/company/get_company_by_id.php",
+      {
+        id: company_id
+      }
+    );
+
+    if(res.data.status){
+
+      const company = res.data.data;
+
+      setGstEnabled(
+        company.gst_type === "with_gst"
+      );
+
+    }
+
+  } catch(err){
+
+    console.log(err);
+
+  } finally {
+
+    setGstLoading(false);
+
+  }
+
+};
+
+const fetchProduct = async () => {
+
+  setFetching(true);
+
+  try {
+
+    const res = await api.get(
+      `/product/get_by_id.php?id=${id}`
+    );
+
+
+    if(res.data.status){
+
+
+   const p = res.data.data;
+
+   setProductCompanyId(p.company_id);
+
+   await fetchCategoriesByCompany(p.company_id);
+
+   await fetchCompanyGSTByCompanyId(p.company_id);
+
+      setForm({
+
+        name: p.product_name,
+        product_code: p.product_code || "",
+        price: p.price,
+        stock: p.stock,
+        gst: p.gst_percentage || "",
+        barcode: p.barcode || "",
+        category_id: String(p.category_id), // IMPORTANT
+        unit: p.unit || ""
+
+      });
+
+    }
+
+  } catch(err){
+
+    console.log(err);
+
+  } finally {
+
+    setFetching(false);
+
+  }
+
+};
+
+useEffect(() => {
+
+  fetchProduct();
+
+}, [id]);
+
+const fetchCategoriesByCompany = async(company_id) => {
+
+  try {
+
+    const res = await api.get(
+      `/category/get_all.php?company_id=${company_id}`
+    );
+
+    if(res.data.status){
+
+      setCategories(res.data.data);
+
+    }
+
+  } catch(err){
+
+    console.log(err);
+
+  }
+
+};
 
   const generateBarcode = () => {
     const code = "PRD" + Math.floor(100000 + Math.random() * 900000);
@@ -147,7 +219,7 @@ export default function EditProduct() {
         product_name: form.name,
         product_code: form.product_code,
         category_id: form.category_id,
-        company_id: getCompanyId(),
+company_id: productCompanyId,
         price: form.price,
         stock: form.stock,
         gst_percentage: gstEnabled ? form.gst : "",
@@ -436,6 +508,8 @@ export default function EditProduct() {
             {/* ── Basic Info ── */}
             <p className="ep-section">Basic Info</p>
 
+            
+
             <div className="ep-field">
               <label className="ep-label">Product Name <span style={{color:"#ef4444"}}>*</span></label>
               {fetching
@@ -467,6 +541,7 @@ export default function EditProduct() {
     />
   </div>
 </div>
+
 
             <div className="ep-field">
               <label className="ep-label">Category <span style={{color:"#ef4444"}}>*</span></label>

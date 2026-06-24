@@ -664,17 +664,55 @@ export default function ProductForm() {
   const [gstLoading, setGstLoading] = useState(true);
   const { toasts, show, remove } = useToast();
   const [existingCodes, setExistingCodes] = useState([]);
+const [companies,setCompanies] = useState([]);
+const [selectedCompany,setSelectedCompany] = useState("");
 
+useEffect(() => {
+
+  const user = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  if(!user?.id) return;
+
+  loadCompanies(user.id);
+
+}, []);
+
+const loadCompanies = async(admin_id) => {
+
+  try {
+
+    const res = await api.get(
+      `/company/get_companies_by_admin.php?admin_id=${admin_id}`
+    );
+
+    if(res.data.status){
+
+      setCompanies(res.data.data);
+
+    }
+
+  } catch(err){
+
+    console.log(err);
+
+  }
+
+};
   const [form, setForm] = useState({
     name: "", product_code: "", price: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
   });
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
-  const getCompanyId = () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    return Number(user?.company_id);
-  };
+const getCompanyId = () => {
+
+  return Number(
+    localStorage.getItem("selected_company_id")
+  );
+
+};
 
   const fetchCompanyGST = async () => {
     setGstLoading(true);
@@ -709,25 +747,39 @@ export default function ProductForm() {
       console.error("Category fetch error:", err);
     }
   };
-  const fetchProducts = async () => {
+const fetchProducts = async(company_id) => {
+
+  if(!company_id){
+
+    setProducts([]);
+    return;
+
+  }
+
+  setLoading(true);
+
   try {
-    const company_id = getCompanyId();
-    if (!company_id) return;
 
     const res = await api.get(
       `/product/get.php?company_id=${company_id}`
     );
 
-    if (res.data.status) {
-      const codes = res.data.data.map(
-        p => (p.product_code || "").toUpperCase()
-      );
+    if(res.data.status){
 
-      setExistingCodes(codes);
+      setProducts(res.data.data);
+
     }
-  } catch (err) {
-    console.error("Product fetch error:", err);
+
+  } catch(err){
+
+    console.log(err);
+
+  } finally {
+
+    setLoading(false);
+
   }
+
 };
 
   useEffect(() => {
@@ -735,6 +787,22 @@ export default function ProductForm() {
     fetchCompanyGST();
     fetchProducts();
   }, []);
+
+
+  const handleCompanyChange = (e) => {
+
+  const companyId = e.target.value;
+
+  setSelectedCompany(companyId);
+
+  localStorage.setItem(
+    "selected_company_id",
+    companyId
+  );
+
+  fetchProducts(companyId);
+
+};
 
   const generateBarcode = () => {
     const code = "PRD" + Math.floor(100000 + Math.random() * 900000);
@@ -1066,10 +1134,67 @@ if (
             </div>
           </div>
 
+          
+
           <div className="pf-body">
 
             {/* ── Basic Info ── */}
             <p className="pf-section">Basic Info</p>
+
+            <div
+  style={{
+    display:"flex",
+    alignItems:"center",
+    width:"320px",
+    background:"#fff",
+    border:"1px solid #dbeafe",
+    borderRadius:"14px",
+    padding:"12px 15px",
+    marginBottom:"20px",
+    boxShadow:"0 4px 16px rgba(37,99,235,.08)"
+  }}
+>
+  <span
+    style={{
+      marginRight:"10px",
+      fontSize:"18px"
+    }}
+  >
+    🏢
+  </span>
+
+  <select
+    value={selectedCompany}
+    onChange={handleCompanyChange}
+    style={{
+      flex:1,
+      border:"none",
+      outline:"none",
+      background:"transparent",
+      fontSize:"14px",
+      fontWeight:"700",
+      cursor:"pointer"
+    }}
+  >
+    <option value="">
+      Select Company
+    </option>
+
+    {companies.map((c) => (
+
+      <option
+        key={c.id}
+        value={c.id}
+      >
+        {c.company_name}
+      </option>
+
+    ))}
+
+  </select>
+
+
+</div>
 
             <div className="pf-field">
               <label className="pf-label">Product Name <span style={{color:"#ef4444"}}>*</span></label>
