@@ -112,9 +112,10 @@ export default function CashierForm() {
       const res = await api.post("/auth/register.php", {
         name: form.name,
         email: form.email,
+        // email: form.email, 
         password: form.password,
         role: "cashier",
-        company_id: user.company_id,
+        admin_id: user.id,
         requested_by: user.id,
       });
 

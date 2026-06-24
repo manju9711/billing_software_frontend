@@ -249,7 +249,7 @@ export default function CompanyRequest() {
       <div
         style={{
           background: "#fff",
-          borderRadius: 32,
+          borderRadius: 28,
           overflow: "hidden",
           boxShadow:
             "0 15px 30px rgba(15,23,42,.05)",
@@ -258,24 +258,24 @@ export default function CompanyRequest() {
         {/* HEADER */}
 
         <div
-          style={{
-            background:
-              "linear-gradient(135deg,#2563eb,#4f86ff)",
-            color: "#fff",
-            padding: "24px 32px",
-            display: "grid",
-            gridTemplateColumns:
-              "2fr 1.5fr 1.5fr 2fr 1.3fr",
-            fontWeight: 700,
-            fontSize: 16,
-          }}
-        >
-          <div>Company</div>
-          <div>Requested By</div>
-          {/* <div>Owner</div> */}
-          {/* <div>Email</div> */}
-          <div>Actions</div>
-        </div>
+  style={{
+    background:
+      "linear-gradient(135deg,#2563eb,#4f86ff)",
+    color: "#fff",
+    padding: "22px 40px",
+    display: "grid",
+    gridTemplateColumns:
+      "2fr 1.5fr 1.2fr",
+    fontWeight: 700,
+    fontSize: 15
+  }}
+>
+  <div>Company</div>
+  <div>Requested By</div>
+  <div style={{ textAlign: "center" }}>
+    Actions
+  </div>
+</div>
 
         {loading ? (
           <div
@@ -299,160 +299,149 @@ export default function CompanyRequest() {
         ) : (
           filteredRequests.map((item) => (
             <div
-              key={item.id}
-              style={{
-                padding: "22px 32px",
-                display: "grid",
-                gridTemplateColumns:
-                  "2fr 1.5fr 1.5fr 2fr 1.3fr",
-                alignItems: "center",
-                borderBottom:
-                  "1px solid #e2e8f0",
-              }}
-            >
+  key={item.id}
+  style={{
+    padding: "28px 40px",
+    display: "grid",
+    gridTemplateColumns:
+      "2fr 1.5fr 1.2fr",
+    alignItems: "center",
+    borderBottom:
+      "1px solid #eef2f7"
+  }}
+>
               {/* COMPANY */}
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 18,
-                }}
-              >
-                <div
-                  style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: 18,
-                    background: "#dbeafe",
-                    color: "#2563eb",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 800,
-                    fontSize: 22,
-                  }}
-                >
-                  {(
-                    item.company_name || "C"
-                  )
-                    .charAt(0)
-                    .toUpperCase()}
-                </div>
+             <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 18
+  }}
+>
+  <div
+    style={{
+      width: 58,
+      height: 58,
+      borderRadius: 18,
+      background: "#dbeafe",
+      color: "#2563eb",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: 700,
+      fontSize: 28
+    }}
+  >
+    {item.company_name
+      ?.charAt(0)
+      ?.toUpperCase()}
+  </div>
 
-                <div>
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      fontSize: 17,
-                    }}
-                  >
-                    {item.company_name}
-                  </div>
+  <div>
+    <div
+      style={{
+        fontWeight: 700,
+        fontSize: 18,
+        color: "#0f172a"
+      }}
+    >
+      {item.company_name}
+    </div>
 
-                  <div
-                    style={{
-                      color: "#94a3b8",
-                    }}
-                  >
-                    Request ID #{item.id}
-                  </div>
-                </div>
-              </div>
+    <div
+      style={{
+        color: "#94a3b8",
+        marginTop: 4,
+        fontSize: 14
+      }}
+    >
+      Request ID #{item.id}
+    </div>
+  </div>
+</div>
 
               {/* REQUESTED BY */}
+<div>
+  <div
+    style={{
+      fontWeight: 600,
+      fontSize: 17,
+      color: "#334155"
+    }}
+  >
+    {item.admin_name}
+  </div>
 
-              <div
-                style={{
-                  fontSize: 17,
-                }}
-              >
-                {item.admin_name ||
-                  item.owner_name}
-              </div>
+  <div
+    style={{
+      fontSize: 13,
+      color: "#94a3b8",
+      marginTop: 4
+    }}
+  >
+    Admin
+  </div>
+</div>
 
-              {/* OWNER */}
+             
 
-              {/* <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 17,
-                }}
-              >
-                {item.owner_name}
-              </div> */}
-
-              {/* EMAIL */}
-
-              {/* <div
-                style={{
-                  color: "#475569",
-                  fontSize: 17,
-                }}
-              >
-                {item.owner_email}
-              </div> */}
 
               {/* ACTIONS */}
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 12,
-                }}
-              >
-                <button
-                  disabled={
-                    actionLoading === item.id
-                  }
-                  onClick={() =>
-                    handleApprove(item.id)
-                  }
-                  style={{
-                    border: "none",
-                    background:
-                      "linear-gradient(135deg,#22c55e,#16a34a)",
-                    color: "#fff",
-                    fontWeight: 700,
-                    borderRadius: 16,
-                    padding:
-                      "12px 24px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <Check size={18} />
-                  Accept
-                </button>
+             <div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    gap: 12
+  }}
+>
+  <button
+    onClick={() => handleApprove(item.id)}
+    style={{
+      border: "none",
+      background:
+        "linear-gradient(135deg,#16a34a,#22c55e)",
+      color: "#fff",
+      padding: "14px 28px",
+      borderRadius: 16,
+      cursor: "pointer",
+      fontWeight: 700,
+      fontSize: 15,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      boxShadow:
+        "0 6px 16px rgba(34,197,94,.25)"
+    }}
+  >
+    <Check size={18}/>
+    Accept
+  </button>
 
-                <button
-                  disabled={
-                    actionLoading === item.id
-                  }
-                  onClick={() =>
-                    handleReject(item.id)
-                  }
-                  style={{
-                    border: "none",
-                    background:
-                      "linear-gradient(135deg,#ef4444,#dc2626)",
-                    color: "#fff",
-                    fontWeight: 700,
-                    borderRadius: 16,
-                    padding:
-                      "12px 24px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <X size={18} />
-                  Reject
-                </button>
-              </div>
+  <button
+    onClick={() => handleReject(item.id)}
+    style={{
+      border: "none",
+      background:
+        "linear-gradient(135deg,#dc2626,#ef4444)",
+      color: "#fff",
+      padding: "14px 28px",
+      borderRadius: 16,
+      cursor: "pointer",
+      fontWeight: 700,
+      fontSize: 15,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      boxShadow:
+        "0 6px 16px rgba(239,68,68,.25)"
+    }}
+  >
+    <X size={18}/>
+    Reject
+  </button>
+</div>
             </div>
           ))
         )}
