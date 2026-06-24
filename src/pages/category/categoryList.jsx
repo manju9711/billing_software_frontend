@@ -447,7 +447,6 @@ useEffect(() => {
     ))}
   </select>
 </div>
-</div>
 
         {/* Search */}
         <div className="cl-search-wrap">
