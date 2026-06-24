@@ -481,7 +481,7 @@ const isLimitReached =
       const res = await api.post(
         "/cashier/get_cashiers.php",
         {
-          company_id: user.company_id
+          admin_id: user.id
         }
       );
 
