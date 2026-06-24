@@ -751,7 +751,7 @@ export default function EditCompany() {
             </Field>
 
             {/* ═══ Owner Details ═══ */}
-            <div className="section-divider">
+            {/* <div className="section-divider">
               <span style={{ fontSize:11, fontWeight:700, color:"#94a3b8", letterSpacing:".08em", textTransform:"uppercase", whiteSpace:"nowrap" }}>
                 Owner / Admin Account
               </span>
@@ -777,7 +777,7 @@ export default function EditCompany() {
                 onChange={e => set("owner_email", e.target.value)}
                 style={errors.owner_email ? { borderColor:"#fca5a5", background:"#fff5f5" } : {}}
               />
-            </Field>
+            </Field> */}
 
 
             {/* ── Submit ── */}

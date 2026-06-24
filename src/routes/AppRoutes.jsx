@@ -35,6 +35,10 @@ import EditCustomer from "../pages/customer/EditCustomer";
 import CreditSettings from "../pages/billing/CreditSettings";
 import PaymentPendingHistory from "../pages/reports/PaymentPendingHistory";
 import PendingCashierRequests from "../pages/CashierRequests/PendingCashierRequests";
+import AdminForm from "../pages/Admin/AdminForm";
+import AdminList from "../pages/Admin/AdminList";
+import EditAdmin from "../pages/Admin/EditAdmin";
+import CompanyRequest from "../pages/CompanyRequests/CompanyRequest";
 
 export default function AppRoutes() {
   return (
@@ -107,6 +111,10 @@ export default function AppRoutes() {
 
 <Route path="/cashier-requests" element={<PendingCashierRequests />}
 />
+      <Route path="/admin/add" element={<AdminForm />} />
+      <Route path="/admin" element={<AdminList />} />
+      <Route path="/admin/edit/:id" element={<EditAdmin />} />
+      <Route path="/company-requests" element={<CompanyRequest />} />
         </Route>
       </Routes>
     </BrowserRouter>

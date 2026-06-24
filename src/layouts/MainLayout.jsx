@@ -47,7 +47,7 @@ export default function MainLayout() {
           { name: "Cashiers", path: "/cashier", icon: <Building2 size={20} /> },
           { name: "Profile", path: "/profile", icon: <Settings size={20} /> },
           { name: "Customer", path: "/customer", icon: <User size={20} /> },
-          // { name: "Credit Settings", path: "/credit-settings", icon: <CreditCard size={20} /> }
+          { name: "Company", path: "/company", icon: <Building2 size={20} /> },
           
         ]
       : []),
@@ -56,7 +56,9 @@ export default function MainLayout() {
     ...(role === "superadmin"
       ? [
           { name: "Company", path: "/company", icon: <Building2 size={20} /> },
-          { name: "Cashier Requests", path: "/cashier-requests", icon: <Building2 size={20} /> }
+          { name: "Admin List", path: "/admin", icon: <Building2 size={20} /> },
+          { name: "Cashier Requests", path: "/cashier-requests", icon: <Building2 size={20} /> },
+          { name: "Company Requests", path: "/company-requests", icon: <Building2 size={20} /> }
         ]
       : []),
 
