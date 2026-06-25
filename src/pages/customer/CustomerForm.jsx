@@ -1,45 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import api from "../../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function CustomerForm() {
-
   const navigate = useNavigate();
-const [companies, setCompanies] = useState([]);
-const [selectedCompany, setSelectedCompany] = useState(
-  localStorage.getItem("selected_company_id") || ""
-);
-
-const loadCompanies = async () => {
-
-  try {
-
-    const user = JSON.parse(
-      localStorage.getItem("user")
-    );
-
-    const res = await api.get(
-      `/company/get_companies_by_admin.php?admin_id=${user.id}`
-    );
-
-    if (res.data.status) {
-      setCompanies(res.data.data);
-    }
-
-  } catch (err) {
-    console.log(err);
-  }
-
-};
-
-useEffect(() => {
-  loadCompanies();
-}, []);
 
   const [form, setForm] = useState({
     name: "",
     phone: "",
     address: "",
+    gst_no: "",
     type: "regular",
     credit_enabled: 0,
     credit_limit: "",
@@ -47,88 +17,67 @@ useEffect(() => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [toast, setToast]     = useState(null);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
   const showToast = (msg, ok = true) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-  setToast({ msg, ok });
-
-  setTimeout(() => {
-    setToast(null);
-  }, 3000);
-
-};
+  const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
   const handleSubmit = async () => {
+    const user     = JSON.parse(localStorage.getItem("user"));
+    const admin_id = user?.id;
 
-    /* 🔥 GET COMPANY ID FROM LOCALSTORAGE */
-  const company_id = Number(selectedCompany);
-    /* ✅ VALIDATION */
     if (!form.name.trim()) {
-     showToast("Customer name is required", false);
+      showToast("Customer name is required", false);
       return;
     }
 
     if (!/^[0-9]{10}$/.test(form.phone)) {
-    showToast("Enter valid 10 digit mobile number", false);
+      showToast("Enter valid 10-digit mobile number", false);
       return;
     }
 
- if (!selectedCompany) {
+    if (!form.gst_no.trim()) {
+      showToast("GST number is required", false);
+      return;
+    }
 
-  showToast(
-    "Please select a company",
-    false
-  );
+    if (!GST_REGEX.test(form.gst_no)) {
+      showToast("Invalid GST format (e.g. 22ABCDE1234F1Z5)", false);
+      return;
+    }
 
-  return;
-}
     setLoading(true);
 
     try {
-
       const payload = {
-        company_id: company_id, // 🔥 IMPORTANT
-        name: form.name.trim(),
-        phone: form.phone,
-        address: form.address,
-        type: form.type,
+        admin_id,
+        name:           form.name.trim(),
+        phone:          form.phone,
+        address:        form.address,
+        gst_no:         form.gst_no,
+        type:           form.type,
         credit_enabled: form.credit_enabled,
-        credit_limit: form.credit_enabled ? form.credit_limit : 0,
-        credit_days: form.credit_enabled ? form.credit_days : 0
+        credit_limit:   form.credit_enabled ? form.credit_limit : 0,
+        credit_days:    form.credit_enabled ? form.credit_days  : 0
       };
 
-      console.log("Payload:", payload); // debug
-
       const res = await api.post("/customer/create_customer.php", payload);
-
-     if (res.data.status) {
-
-  showToast(
-    "Customer created successfully!",
-    true
-  );
-
-  setTimeout(() => {
-
-    navigate("/customer");
-
-  }, 1500);
-
-} else {
-
-  showToast(
-    res.data.message || "Failed to create",
-    false
-  );
-
-}
-
+console.log("API Response:", res.data);
+      if (res.data.status) {
+        showToast("Customer created successfully!");
+        setTimeout(() => navigate("/customer"), 1500);
+      } else {
+        showToast(res.data.message || "Failed to create", false);
+      }
     } catch (err) {
       console.error(err);
-     
-  showToast("Server error", false);
+      showToast("Server error", false);
     }
 
     setLoading(false);
@@ -136,288 +85,207 @@ useEffect(() => {
 
   return (
     <>
-    {/* TOAST */}
-
-{toast && (
-
-  <div
-    style={{
-      position: "fixed",
-      top: 20,
-      right: 20,
-      zIndex: 99999,
-      background: toast.ok
-        ? "linear-gradient(135deg,#2563eb,#3b82f6)"
-        : "linear-gradient(135deg,#dc2626,#ef4444)",
-      color: "#fff",
-      padding: "13px 18px",
-      borderRadius: 14,
-      boxShadow: "0 10px 30px rgba(0,0,0,.15)",
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      fontWeight: 600,
-      fontSize: 14,
-      animation: "toastIn .25s ease"
-    }}
-  >
-
-    <div
-      style={{
-        width: 22,
-        height: 22,
-        borderRadius: 7,
-        background: "rgba(255,255,255,.2)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 12,
-        fontWeight: 700
-      }}
-    >
-      {toast.ok ? "✓" : "✕"}
-    </div>
-
-    {toast.msg}
-
-  </div>
-
-)}
-<style>{`
-@keyframes toastIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px) scale(.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-`}</style>
-    <div style={{
-      minHeight: "100vh",
-      background: "#eef2f7",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontFamily: "Inter, sans-serif"
-    }}>
-
-      {/* CARD */}
-      <div style={{
-        width: 380,
-        background: "#fff",
-        borderRadius: 24,
-        overflow: "hidden",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.08)"
-      }}>
-
-        {/* HEADER */}
+      {toast && (
         <div style={{
-          background: "linear-gradient(135deg,#1d4ed8,#3b82f6)",
-          padding: 24,
-          color: "#fff"
+          position: "fixed", top: 20, right: 20, zIndex: 99999,
+          background: toast.ok
+            ? "linear-gradient(135deg,#2563eb,#3b82f6)"
+            : "linear-gradient(135deg,#dc2626,#ef4444)",
+          color: "#fff", padding: "13px 18px", borderRadius: 14,
+          boxShadow: "0 10px 30px rgba(0,0,0,.15)",
+          display: "flex", alignItems: "center", gap: 10,
+          fontWeight: 600, fontSize: 14, animation: "toastIn .25s ease"
         }}>
-          <h2 style={{ margin: 0 }}>Add Customer</h2>
-          <p style={{ margin: "5px 0 0", fontSize: 13, opacity: 0.8 }}>
-            Create a new customer
-          </p>
+          <div style={{
+            width: 22, height: 22, borderRadius: 7,
+            background: "rgba(255,255,255,.2)",
+            display: "flex", alignItems: "center",
+            justifyContent: "center", fontSize: 12, fontWeight: 700
+          }}>
+            {toast.ok ? "✓" : "✕"}
+          </div>
+          {toast.msg}
         </div>
+      )}
 
+      <style>{`
+        @keyframes toastIn {
+          from { opacity:0; transform:translateY(-10px) scale(.95); }
+          to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+      `}</style>
 
-<div style={{ marginBottom: 12 }}>
+      <div style={{
+        minHeight: "100vh", background: "#eef2f7",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontFamily: "Inter, sans-serif"
+      }}>
+        <div style={{
+          width: 400, background: "#fff", borderRadius: 24,
+          overflow: "hidden", boxShadow: "0 20px 50px rgba(0,0,0,0.08)"
+        }}>
 
-  <label
-    style={{
-      display: "block",
-      marginBottom: 6,
-      fontSize: 13,
-      fontWeight: 600,
-      color: "#475569"
-    }}
-  >
-    Select Company
-  </label>
-
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      background: "#f8fafc",
-      border: "1px solid #dbeafe",
-      borderRadius: 14,
-      padding: "0 12px",
-      height: 50
-    }}
-  >
-    <span style={{ marginRight: 8 }}>
-      🏢
-    </span>
-
-    <select
-      value={selectedCompany}
-      onChange={(e) => {
-
-        setSelectedCompany(e.target.value);
-
-        localStorage.setItem(
-          "selected_company_id",
-          e.target.value
-        );
-
-      }}
-      style={{
-        flex: 1,
-        border: "none",
-        outline: "none",
-        background: "transparent",
-        fontSize: 14,
-        fontWeight: 600,
-        cursor: "pointer"
-      }}
-    >
-      <option value="">
-        Select Company
-      </option>
-
-      {companies.map((c) => (
-        <option
-          key={c.id}
-          value={c.id}
-        >
-          {c.company_name}
-        </option>
-      ))}
-
-    </select>
-
-  </div>
-
-</div>
-        {/* FORM */}
-        <div style={{ padding: 20 }}>
-
-          {/* NAME */}
-          <input
-            placeholder="Customer Name"
-            value={form.name}
-            onChange={e => set("name", e.target.value)}
-            style={inputStyle}
-          />
-
-          {/* PHONE */}
-          <input
-            placeholder="Mobile"
-            value={form.phone}
-            onChange={e => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
-            style={inputStyle}
-          />
-
-          {/* ADDRESS */}
-          <textarea
-            placeholder="Address"
-            value={form.address}
-            onChange={e => set("address", e.target.value)}
-            style={{ ...inputStyle, height: 70 }}
-          />
-
-          <label>Customer Type</label>
-
-          {/* TYPE */}
-          <select
-            value={form.type}
-            onChange={e => set("type", e.target.value)}
-            style={inputStyle}
-          >
-            <option value="regular">Regular</option>
-            <option value="wholesale">Wholesale</option>
-            <option value="retail">Retail</option>
-          </select>
-
-          {/* CREDIT ENABLE */}
-          <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-            <label>Credit Enabled</label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="radio"
-                name="credit_enabled"
-                value={1}
-                checked={form.credit_enabled === 1}
-                onChange={(e) => set("credit_enabled", Number(e.target.value))}
-              />
-              Yes
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="radio"
-                name="credit_enabled"
-                value={0}
-                checked={form.credit_enabled === 0}
-                onChange={(e) => set("credit_enabled", Number(e.target.value))}
-              />
-              No
-            </label>
+          {/* HEADER */}
+          <div style={{
+            background: "linear-gradient(135deg,#1d4ed8,#3b82f6)",
+            padding: 24, color: "#fff"
+          }}>
+            <h2 style={{ margin: 0 }}>Add Customer</h2>
+            <p style={{ margin: "5px 0 0", fontSize: 13, opacity: 0.8 }}>
+              Create a new customer record
+            </p>
           </div>
 
-          {/* CREDIT LIMIT */}
-          {form.credit_enabled === 1 && (
+          {/* FORM */}
+          <div style={{ padding: 20 }}>
+
+            {/* NAME */}
             <input
-              type="number"
-              placeholder="Credit Limit"
-              value={form.credit_limit}
-              onChange={e => set("credit_limit", e.target.value)}
+              placeholder="Customer Name *"
+              value={form.name}
+              onChange={e => set("name", e.target.value)}
               style={inputStyle}
             />
-          )}
 
-          {/* CREDIT DAYS */}
-{form.credit_enabled === 1 && (
-  <input
-    type="number"
-    placeholder="Credit Days"
-    value={form.credit_days}
-    onChange={e => set("credit_days", e.target.value)}
-    style={inputStyle}
-  />
-)}
+            {/* PHONE */}
+            <input
+              placeholder="Mobile Number *"
+              value={form.phone}
+              onChange={e =>
+                set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))
+              }
+              style={inputStyle}
+            />
 
-          {/* BUTTON */}
-          <button
-            onClick={handleSubmit}
-            style={{
-              width: "100%",
-              marginTop: 10,
-              padding: 14,
-              border: "none",
-              borderRadius: 14,
-              background: "linear-gradient(135deg,#2563eb,#3b82f6)",
-              color: "#fff",
-              fontWeight: 600,
-              cursor: "pointer",
-              fontSize: 14
-            }}
-          >
-            {loading ? "Creating..." : "Create Customer"}
-          </button>
+            {/* GST — max 15 chars, uppercase only */}
+            <div style={{ marginBottom: 12 }}>
+              <input
+                placeholder="GST Number * (e.g. 22ABCDE1234F1Z5)"
+                value={form.gst_no}
+                maxLength={15}
+                onChange={e =>
+                  set("gst_no", e.target.value.toUpperCase().slice(0, 15))
+                }
+                style={{
+                  ...inputStyle,
+                  marginBottom: 4,
+                  // green border when 15 chars typed
+                  border: form.gst_no.length === 15
+                    ? "1.5px solid #16a34a"
+                    : form.gst_no.length > 0
+                    ? "1.5px solid #f59e0b"
+                    : "1.5px solid transparent"
+                }}
+              />
+              {/* char counter */}
+              <div style={{
+                fontSize: 11, fontWeight: 600, textAlign: "right",
+                color: form.gst_no.length === 15 ? "#16a34a" : "#94a3b8"
+              }}>
+                {form.gst_no.length} / 15
+              </div>
+            </div>
 
+            {/* ADDRESS */}
+            <textarea
+              placeholder="Address"
+              value={form.address}
+              onChange={e => set("address", e.target.value)}
+              style={{ ...inputStyle, height: 70, resize: "none" }}
+            />
+
+            {/* CUSTOMER TYPE */}
+            <label style={{
+              fontSize: 12, fontWeight: 600,
+              color: "#475569", display: "block", marginBottom: 6
+            }}>
+              Customer Type
+            </label>
+            <select
+              value={form.type}
+              onChange={e => set("type", e.target.value)}
+              style={inputStyle}
+            >
+              <option value="regular">Regular B2B</option>
+              <option value="wholesale">Regular B2C</option>
+            </select>
+
+            {/* CREDIT ENABLED */}
+            <div style={{
+              display: "flex", gap: 20,
+              alignItems: "center", marginBottom: 12
+            }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "#475569" }}>
+                Credit Enabled
+              </label>
+              {[{ label: "Yes", val: 1 }, { label: "No", val: 0 }].map(opt => (
+                <label key={opt.val} style={{
+                  display: "flex", alignItems: "center", gap: 6, fontSize: 13
+                }}>
+                  <input
+                    type="radio"
+                    name="credit_enabled"
+                    value={opt.val}
+                    checked={form.credit_enabled === opt.val}
+                    onChange={e => set("credit_enabled", Number(e.target.value))}
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
+
+            {form.credit_enabled === 1 && (
+              <>
+                <input
+                  type="number"
+                  placeholder="Credit Limit (₹)"
+                  value={form.credit_limit}
+                  onChange={e => set("credit_limit", e.target.value)}
+                  style={inputStyle}
+                />
+                <input
+                  type="number"
+                  placeholder="Credit Days"
+                  value={form.credit_days}
+                  onChange={e => set("credit_days", e.target.value)}
+                  style={inputStyle}
+                />
+              </>
+            )}
+
+            {/* SUBMIT */}
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              style={{
+                width: "100%", marginTop: 10, padding: 14,
+                border: "none", borderRadius: 14,
+                background: loading
+                  ? "#93c5fd"
+                  : "linear-gradient(135deg,#2563eb,#3b82f6)",
+                color: "#fff", fontWeight: 700,
+                cursor: loading ? "not-allowed" : "pointer",
+                fontSize: 14
+              }}
+            >
+              {loading ? "Creating..." : "Create Customer"}
+            </button>
+
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
 
-/* INPUT STYLE */
 const inputStyle = {
   width: "100%",
   marginBottom: 12,
   padding: "12px 14px",
   borderRadius: 14,
-  border: "none",
+  border: "1.5px solid transparent",
   background: "#f1f5f9",
   outline: "none",
-  fontSize: 14
+  fontSize: 14,
+  boxSizing: "border-box"
 };

@@ -277,6 +277,7 @@ export default function EditCustomer() {
     name: "",
     phone: "",
     address: "",
+    gst_no:"",
     type: "regular",
     credit_enabled: 0,
     credit_limit: "",
@@ -399,6 +400,8 @@ export default function EditCustomer() {
           name: form.name,
 
           phone: form.phone,
+
+          gst_no:form.gst_no,
 
           address: form.address,
 
@@ -611,6 +614,18 @@ export default function EditCustomer() {
             }
             style={input}
           />
+           {/* GST  */}
+
+          <input
+value={form.gst_no}
+onChange={(e)=>
+set(
+"gst_no",
+e.target.value.toUpperCase()
+)
+}
+style={input}
+/>
 
           {/* ADDRESS */}
 

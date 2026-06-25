@@ -655,7 +655,10 @@ const balance = invoice.paid_amount - invoice.total_amount;
         </div>
         <div>{company?.company_address}</div>
         <div>Ph: {company?.phone}</div>
-        <div>GSTIN: {company?.gstin}</div>
+        {/* <div>GSTIN: {company?.gstin}</div> */}
+        <div>
+  GSTIN: {invoice.gst_no || company?.gstin}
+</div>
       </div>
 
       <div style={S.divider} />
@@ -667,7 +670,7 @@ const balance = invoice.paid_amount - invoice.total_amount;
       </div>
 
       <div style={{ marginTop: 4 }}>
-        Customer: {invoice.customer_name || "---"}
+        Customer: {invoice.customer_name || "Customer"}
       </div>
       <div>Phone: {invoice.customer_phone}</div>
 
