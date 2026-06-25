@@ -714,39 +714,66 @@ const getCompanyId = () => {
 
 };
 
-  const fetchCompanyGST = async () => {
-    setGstLoading(true);
-    try {
-      const company_id = getCompanyId();
-      if (!company_id) return;
-      const res = await api.post("/company/get_company_by_id.php", { id: company_id });
-      if (res.data.status) {
-        const company = res.data.data;
-        if (company.gst_type === "with_gst") {
-          setGstEnabled(true);
-        } else {
-          setGstEnabled(false);
-          set("gst", "");
-        }
-      }
-    } catch (err) {
-      console.error("GST fetch error:", err);
-      setGstEnabled(false);
-    } finally {
-      setGstLoading(false);
-    }
-  };
+ const fetchCompanyGST = async (company_id) => {
 
-  const fetchCategories = async () => {
+    setGstLoading(true);
+
     try {
-      const company_id = getCompanyId();
-      if (!company_id) return;
-      const res = await api.get(`/category/get_active_category.php?company_id=${company_id}`);
-      if (res.data.status) setCategories(res.data.data);
-    } catch (err) {
-      console.error("Category fetch error:", err);
+
+        if(!company_id) return;
+
+        const res = await api.post(
+            "/company/get_company_by_id.php",
+            {
+                id: company_id
+            }
+        );
+
+        if(res.data.status){
+
+            const company = res.data.data;
+
+            setGstEnabled(
+                company.gst_type === "with_gst"
+            );
+
+        }
+
+    } finally {
+
+        setGstLoading(false);
+
     }
-  };
+
+};
+
+const fetchCategories = async (company_id) => {
+
+  try {
+
+    if (!company_id) {
+      setCategories([]);
+      return;
+    }
+
+    const res = await api.get(
+      `/category/get_active_category.php?company_id=${company_id}`
+    );
+
+    if (res.data.status) {
+      setCategories(res.data.data);
+    } else {
+      setCategories([]);
+    }
+
+  } catch (err) {
+
+    console.log(err);
+    setCategories([]);
+
+  }
+
+};
 const fetchProducts = async(company_id) => {
 
   if(!company_id){
@@ -782,25 +809,37 @@ const fetchProducts = async(company_id) => {
 
 };
 
-  useEffect(() => {
-    fetchCategories();
-    fetchCompanyGST();
-    fetchProducts();
-  }, []);
+useEffect(() => {
+
+    if(!selectedCompany) return;
+
+    fetchCategories(selectedCompany);
+    fetchCompanyGST(selectedCompany);
+    fetchProducts(selectedCompany);
+
+}, [selectedCompany]);
 
 
-  const handleCompanyChange = (e) => {
+const handleCompanyChange = (e) => {
 
-  const companyId = e.target.value;
+    const companyId = e.target.value;
 
-  setSelectedCompany(companyId);
+    setSelectedCompany(companyId);
 
-  localStorage.setItem(
-    "selected_company_id",
-    companyId
-  );
+    localStorage.setItem(
+        "selected_company_id",
+        companyId
+    );
 
-  fetchProducts(companyId);
+    // Reset previous category
+    setForm(prev => ({
+        ...prev,
+        category_id: ""
+    }));
+
+    fetchCategories(companyId);
+    fetchCompanyGST(companyId);
+    fetchProducts(companyId);
 
 };
 
