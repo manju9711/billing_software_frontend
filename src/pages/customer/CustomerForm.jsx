@@ -419,9 +419,9 @@ const verifyGST = async ()=>{
             onChange={e => set("type", e.target.value)}
             style={inputStyle}
           >
-            <option value="regular">Regular</option>
-            <option value="wholesale">Wholesale</option>
-            <option value="retail">Retail</option>
+            <option value="regular">Regular B2B</option>
+            <option value="wholesale">Regular B2C</option>
+            {/* <option value="retail">Retail</option> */}
           </select>
 
           {/* CREDIT ENABLE */}
