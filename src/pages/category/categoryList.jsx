@@ -1,15 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import { Pencil } from "lucide-react";
+
+import {
+  Pencil,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+
+const ITEMS_PER_PAGE = 5;
 
 export default function CategoryList() {
 
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  
 
  const getCompanyId = () => {
 
@@ -166,6 +175,21 @@ useEffect(() => {
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 
+
+  const totalPages = Math.max(
+  1,
+  Math.ceil(filtered.length / ITEMS_PER_PAGE)
+);
+
+const safePage = Math.min(
+  currentPage,
+  totalPages
+);
+
+const paginated = filtered.slice(
+  (safePage - 1) * ITEMS_PER_PAGE,
+  safePage * ITEMS_PER_PAGE
+);
   return (
     <>
       <style>{`
@@ -376,6 +400,38 @@ useEffect(() => {
           color:#94a3b8;
         }
 
+        .cl-page-btn{
+  width:34px;
+  height:34px;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1.5px solid #e2e8f0;
+  background:#fff;
+  color:#64748b;
+  cursor:pointer;
+  font-weight:600;
+  transition:.2s;
+}
+
+.cl-page-btn:hover:not(:disabled){
+  background:#eff6ff;
+  color:#2563eb;
+  border-color:#3b82f6;
+}
+
+.cl-page-btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+.cl-page-btn.active{
+  background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+  color:#fff;
+  border:none;
+}
+
       `}</style>
 
       <div className="cl-page">
@@ -456,7 +512,11 @@ useEffect(() => {
             className="cl-search"
             placeholder="Search categories..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            // onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+  setSearch(e.target.value);
+  setCurrentPage(1);
+}}
           />
 
         </div>
@@ -495,13 +555,14 @@ useEffect(() => {
 
               ) : (
 
-                filtered.map((c, i) => (
+                paginated.map((c, i) => (
 
                   <tr key={c.id}>
 
                     <td>
                       <div className="cl-index">
-                        {i + 1}
+                        {/* {i + 1} */}
+                        {(safePage - 1) * ITEMS_PER_PAGE + i + 1}
                       </div>
                     </td>
 
@@ -559,7 +620,98 @@ useEffect(() => {
             </tbody>
 
           </table>
+{filtered.length > ITEMS_PER_PAGE && (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "16px 20px",
+      borderTop: "1px solid #e2e8f0",
+      background: "#fafbff",
+      flexWrap: "wrap",
+      gap: 10,
+    }}
+  >
+    <div
+      style={{
+        fontSize: 13,
+        color: "#64748b",
+      }}
+    >
+      Showing{" "}
+      <strong>
+        {(safePage - 1) * ITEMS_PER_PAGE + 1}–
+        {Math.min(
+          safePage * ITEMS_PER_PAGE,
+          filtered.length
+        )}
+      </strong>{" "}
+      of <strong>{filtered.length}</strong> categories
+    </div>
 
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+      }}
+    >
+      <button
+        disabled={safePage === 1}
+        onClick={() => setCurrentPage((p) => p - 1)}
+        className="cl-page-btn"
+      >
+        <ChevronLeft size={16} />
+      </button>
+
+      {Array.from({ length: totalPages }, (_, i) => i + 1)
+        .filter(
+          (p) =>
+            p === 1 ||
+            p === totalPages ||
+            Math.abs(p - safePage) <= 1
+        )
+        .reduce((acc, p, i, arr) => {
+          if (i > 0 && arr[i - 1] !== p - 1)
+            acc.push("...");
+          acc.push(p);
+          return acc;
+        }, [])
+        .map((item, i) =>
+          item === "..." ? (
+            <span
+              key={i}
+              style={{
+                padding: "0 5px",
+                color: "#94a3b8",
+              }}
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={item}
+              onClick={() => setCurrentPage(item)}
+              className={`cl-page-btn ${
+                safePage === item ? "active" : ""
+              }`}
+            >
+              {item}
+            </button>
+          )
+        )}
+
+      <button
+        disabled={safePage === totalPages}
+        onClick={() => setCurrentPage((p) => p + 1)}
+        className="cl-page-btn"
+      >
+        <ChevronRight size={16} />
+      </button>
+    </div>
+  </div>
+)}
         </div>
 
       </div>
