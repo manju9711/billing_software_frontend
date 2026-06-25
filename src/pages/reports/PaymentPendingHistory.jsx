@@ -365,14 +365,24 @@ export default function PaymentPendingHistory() {
 
   const fetchData = async () => {
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    // const user = JSON.parse(localStorage.getItem("user"));
 
-    const res = await api.post(
-      "/invoice/get_pending_invoice_history.php",
-      {
-        company_id: user.company_id
-      }
-    );
+    // const res = await api.post(
+    //   "/invoice/get_pending_invoice_history.php",
+    //   {
+    //     company_id: user.company_id
+    //   }
+    // );
+
+     const company_id =
+  localStorage.getItem("selected_company_id");
+
+const res = await api.post(
+  "/invoice/get_pending_invoice_history.php",
+  {
+    company_id
+  }
+);
 
     if (res.data.status) {
       setData(res.data.data);

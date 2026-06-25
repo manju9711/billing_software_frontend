@@ -23,6 +23,7 @@ export default function Login() {
           email: userData.email,
           role: role,
           company_id: userData.company_id || null,
+          admin_id: userData.admin_id || null,
         };
 
         localStorage.setItem("user", JSON.stringify(user));

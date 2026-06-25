@@ -144,16 +144,31 @@ export default function Reports() {
   const fetchFiltered = useCallback(async (filters = {}) => {
     setLoading(true);
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user?.company_id) return;
-      const res = await api.post("/invoice/get_filtered_invoices.php", {
-        company_id:     user.company_id,
-        from_date:      filters.fromDate      ?? fromDate,
-        to_date:        filters.toDate        ?? toDate,
-        payment_method: filters.paymentMethod ?? paymentMethod,
-        payment_status: filters.paymentStatus ?? paymentStatus,
-        customer_name:  filters.customerFilter ?? customerFilter,
-      });
+      // const user = JSON.parse(localStorage.getItem("user"));
+      // if (!user?.company_id) return;
+      // const res = await api.post("/invoice/get_filtered_invoices.php", {
+      //   company_id:     user.company_id,
+      //   from_date:      filters.fromDate      ?? fromDate,
+      //   to_date:        filters.toDate        ?? toDate,
+      //   payment_method: filters.paymentMethod ?? paymentMethod,
+      //   payment_status: filters.paymentStatus ?? paymentStatus,
+      //   customer_name:  filters.customerFilter ?? customerFilter,
+      // });
+      const company_id =
+  localStorage.getItem("selected_company_id");
+
+console.log("REPORT COMPANY ID =", company_id);
+
+if (!company_id) return;
+
+const res = await api.post("/invoice/get_filtered_invoices.php", {
+  company_id,
+  from_date: filters.fromDate ?? fromDate,
+  to_date: filters.toDate ?? toDate,
+  payment_method: filters.paymentMethod ?? paymentMethod,
+  payment_status: filters.paymentStatus ?? paymentStatus,
+  customer_name: filters.customerFilter ?? customerFilter,
+});
       if (res.data.status) {
         setInvoices(res.data.data);
         setSummary(res.data.summary);
