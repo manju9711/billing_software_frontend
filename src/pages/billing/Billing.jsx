@@ -1,3 +1,4 @@
+// //verify gst
 // import { useState, useEffect, useRef } from "react";
 // import { useNavigate } from "react-router-dom";
 // import api from "../../services/api";
@@ -457,13 +458,29 @@
 //       const pending = parseFloat(fresh.pending_amount)  || 0;
 //       const pts     = parseInt(fresh.loyalty_points)    || 0;
 
-//   setCustomer({
+// //   setCustomer({
+// //   id: fresh.id,
+// //   name: fresh.name,
+// //   phone: fresh.phone,
+
+// //   // Company GSTIN Auto Fill
+// //   gst_no: fresh.company_gstin || "",
+
+// //   credit_enabled: fresh.credit_enabled || "0",
+// //   credit_limit: fresh.credit_limit || 0,
+// //   points: pts,
+// //   advance_balance: adv,
+// //   pending_amount: pending,
+// // });
+//       // Build toast message
+      
+//       setCustomer({
 //   id: fresh.id,
 //   name: fresh.name,
 //   phone: fresh.phone,
 
-//   // Company GSTIN Auto Fill
-//   gst_no: fresh.company_gstin || "",
+//   // Customer GST Number
+//   gst_no: fresh.gst_no || "",
 
 //   credit_enabled: fresh.credit_enabled || "0",
 //   credit_limit: fresh.credit_limit || 0,
@@ -471,7 +488,6 @@
 //   advance_balance: adv,
 //   pending_amount: pending,
 // });
-//       // Build toast message
 //       const msgs = [];
 //       if (pts     > 0) msgs.push(`${pts} loyalty pts`);
 //       if (adv     > 0) msgs.push(`₹${adv.toFixed(2)} advance`);
@@ -1935,9 +1951,7 @@ export default function Billing() {
     pending_amount:  0,   // ← NEW: from customers table
   });
 
-//   const [gstVerified, setGstVerified] = useState(false);
-// const [gstLoading, setGstLoading] = useState(false);
-// const [gstBusinessName, setGstBusinessName] = useState("");
+ 
 
   const [nameSuggestions,  setNameSuggestions]  = useState([]);
   const [phoneSuggestions, setPhoneSuggestions] = useState([]);
@@ -2013,42 +2027,9 @@ const pendingBalance =
   localStorage.getItem("selected_company_id") || ""
 );
 
-// useEffect(() => {
-
-//   if (!selectedCompany) return;
-
-//   api.get("/product/get.php", {
-//     params: {
-//       company_id: selectedCompany
-//     }
-//   }).then(r => {
-
-//     if (r.data.status) {
-
-//       const activeProducts =
-//         (r.data.data || []).filter(
-//           p => p.status === "active"
-//         );
-
-//       setProducts(activeProducts);
-//     }
-
-//   });
-
-// }, [selectedCompany]);
-  
 useEffect(() => {
 
-  if (!selectedCompany) {
-    setProducts([]);
-
-    setCustomer(prev => ({
-      ...prev,
-      gst_no: ""
-    }));
-
-    return;
-  }
+  if (!selectedCompany) return;
 
   api.get("/product/get.php", {
     params: {
@@ -2058,37 +2039,18 @@ useEffect(() => {
 
     if (r.data.status) {
 
-      const allProducts = r.data.data || [];
-
-      const activeProducts = allProducts.filter(
-        p => p.status === "active"
-      );
+      const activeProducts =
+        (r.data.data || []).filter(
+          p => p.status === "active"
+        );
 
       setProducts(activeProducts);
-
-      // ✅ Company GST Auto Fill
-      if (allProducts.length > 0) {
-
-        setCustomer(prev => ({
-          ...prev,
-          gst_no: allProducts[0].company_gstin || ""
-        }));
-
-      } else {
-
-        setCustomer(prev => ({
-          ...prev,
-          gst_no: ""
-        }));
-
-      }
-
     }
 
   });
 
 }, [selectedCompany]);
-/* ── Close dropdowns on outside click ── */
+  /* ── Close dropdowns on outside click ── */
   useEffect(() => {
     const handler = e => {
       if (suggestRef.current && !suggestRef.current.contains(e.target)) {
@@ -2130,63 +2092,7 @@ api.get(
   });
 
 }, []);
-//gst verification
-//   const verifyGST = async (gstNo) => {
 
-//   if (gstNo.length !== 15) {
-//     setGstVerified(false);
-//     setGstBusinessName("");
-//     return;
-//   }
-
-//   try {
-
-//     setGstLoading(true);
-
-//     const res = await api.post(
-//       "/invoice/verify_gst.php",
-//       {
-//         gst_no: gstNo
-//       }
-//     );
-
-//     if (res.data.status) {
-
-//       setGstVerified(true);
-
-//       setGstBusinessName(
-//         res.data.business_name || ""
-//       );
-
-//       showToast(
-//         "GST Verified",
-//         "success"
-//       );
-
-//     } else {
-
-//       setGstVerified(false);
-
-//       setGstBusinessName("");
-
-//       showToast(
-//         "Invalid GST Number",
-//         "error"
-//       );
-//     }
-
-//   } catch (err) {
-
-//     setGstVerified(false);
-
-//     showToast(
-//       "GST Verification Failed",
-//       "error"
-//     );
-//   }
-
-//   setGstLoading(false);
-// };
 
   const showToast = (msg, type = "error") => {
     const id = Date.now() + Math.random();
@@ -2236,13 +2142,29 @@ api.get(
       const pending = parseFloat(fresh.pending_amount)  || 0;
       const pts     = parseInt(fresh.loyalty_points)    || 0;
 
-  setCustomer({
+//   setCustomer({
+//   id: fresh.id,
+//   name: fresh.name,
+//   phone: fresh.phone,
+
+//   // Company GSTIN Auto Fill
+//   gst_no: fresh.company_gstin || "",
+
+//   credit_enabled: fresh.credit_enabled || "0",
+//   credit_limit: fresh.credit_limit || 0,
+//   points: pts,
+//   advance_balance: adv,
+//   pending_amount: pending,
+// });
+      // Build toast message
+      
+      setCustomer({
   id: fresh.id,
   name: fresh.name,
   phone: fresh.phone,
 
-  // Company GSTIN Auto Fill
-  gst_no: fresh.company_gstin || "",
+  // Customer GST Number
+  gst_no: fresh.gst_no || "",
 
   credit_enabled: fresh.credit_enabled || "0",
   credit_limit: fresh.credit_limit || 0,
@@ -2250,7 +2172,6 @@ api.get(
   advance_balance: adv,
   pending_amount: pending,
 });
-      // Build toast message
       const msgs = [];
       if (pts     > 0) msgs.push(`${pts} loyalty pts`);
       if (adv     > 0) msgs.push(`₹${adv.toFixed(2)} advance`);
@@ -2403,7 +2324,8 @@ api.get(
     if (customer.id) return customer.id;
     const res = await api.post("/customer/customer_save.php", {
       company_id: selectedCompany,
-      name:       customer.name,
+      // name:       customer.name,
+      name: customer.name || "Customer",
       phone:      customer.phone,
       gst_no:     billType === "gst_bill" ? customer.gst_no : "",
     });
@@ -2413,21 +2335,24 @@ api.get(
 
   /* ── GENERATE INVOICE ── */
   const handleGenerate = async () => {
-    if (!customer.name.trim())               { showToast("Customer name is required!", "error"); return; }
-    if (!/^[0-9]{10}$/.test(customer.phone)) { showToast("Enter a valid 10-digit phone number!", "error"); return; }
+    // Either Name or Phone is mandatory
+if (!customer.name.trim() && !customer.phone.trim()) {
+  showToast("Enter Customer Name or Phone Number!", "error");
+  return;
+}
+
+// Phone validation only if phone is entered
+if (
+  customer.phone.trim() &&
+  !/^[0-9]{10}$/.test(customer.phone)
+) {
+  showToast("Enter a valid 10-digit phone number!", "error");
+  return;
+}
     if (billType === "gst_bill" && !customer.gst_no.trim()) {
       showToast("GST Number is mandatory for GST Bill!", "error"); return;
     }
-   if (
-    billType === "gst_bill" &&
-    !customer.gst_no.trim()
-) {
-    showToast(
-        "GST Number is mandatory for GST Bill!",
-        "error"
-    );
-    return;
-}
+   
     if (validRows.length === 0) { showToast("Add at least one product!", "error"); return; }
 
     if (paymentMethod !== "credit" && received <= 0 && advanceUsed < total) {
@@ -2838,16 +2763,13 @@ if (!selectedCompany) {
                   placeholder="e.g. 29ABCDE1234F1Z5"
                   value={customer.gst_no}
                   maxLength={15}
-       readOnly
-                  
-             onChange={(e) => {
-
+          
+               onChange={(e) =>
   setCustomer(c => ({
     ...c,
     gst_no: e.target.value.toUpperCase()
-  }));
-
-}}
+  }))
+}
                   style={{
                     borderColor: customer.gst_no ? "#f59e0b" : "#e2e8f0",
                     background: customer.gst_no ? "#fffbeb" : undefined,
@@ -2855,43 +2777,27 @@ if (!selectedCompany) {
                     letterSpacing: customer.gst_no ? ".05em" : 0,
                   }}
                 />
-       
-{customer.gst_no && (
-  <span
-    style={{
-      position:"absolute",
-      right:10,
-      top:"50%",
-      transform:"translateY(-50%)",
-      display:"flex",
-      alignItems:"center",
-      gap:"6px"
-    }}
-  >
-    <span
-      style={{
-        color:"#16a34a",
-        fontWeight:"bold",
-        fontSize:"18px"
-      }}
-    >
-      ✓
-    </span>
+        
 
-    <span
-      style={{
-        fontSize:10,
-        fontWeight:700,
-        color:"#d97706",
-        background:"#fef3c7",
-        borderRadius:6,
-        padding:"2px 8px",
-        border:"1px solid #fde68a",
-      }}
-    >
-      {customer.gst_no.length}/15
-    </span>
-  </span>
+
+               {customer.gst_no && (
+ <span
+  style={{
+    position:"absolute",
+    right:10,
+    top:"50%",
+    transform:"translateY(-50%)",
+    fontSize:10,
+    fontWeight:700,
+    color:"#d97706",
+    background:"#fef3c7",
+    borderRadius:6,
+    padding:"2px 8px",
+    border:"1px solid #fde68a",
+  }}
+>
+  {customer.gst_no.length}/15
+</span>
 )}
               </div>
               <div style={{ fontSize:11, color:"#94a3b8", marginTop:5, fontWeight:400 }}>

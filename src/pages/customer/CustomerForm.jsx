@@ -6,6 +6,7 @@ export default function CustomerForm() {
 
   const navigate = useNavigate();
 const [companies, setCompanies] = useState([]);
+const [gstVerified, setGstVerified] = useState(false);
 const [selectedCompany, setSelectedCompany] = useState(
   localStorage.getItem("selected_company_id") || ""
 );
@@ -36,15 +37,16 @@ useEffect(() => {
   loadCompanies();
 }, []);
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    address: "",
-    type: "regular",
-    credit_enabled: 0,
-    credit_limit: "",
-    credit_days: ""
-  });
+ const [form, setForm] = useState({
+  name:"",
+  phone:"",
+  address:"",
+  gst_no:"",
+  type:"regular",
+  credit_enabled:0,
+  credit_limit:"",
+  credit_days:""
+});
 
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -59,6 +61,62 @@ useEffect(() => {
   }, 3000);
 
 };
+
+const verifyGST = async ()=>{
+
+    if(form.gst_no.length!==15){
+
+        showToast(
+            "Enter valid GST Number",
+            false
+        );
+
+        return;
+
+    }
+
+    try{
+
+        const res = await api.post(
+            "/invoice/verify_gst.php",
+            {
+                gst_number:form.gst_no
+            }
+        );
+
+        if(
+            res.data.http_code===200 &&
+            res.data.api_response?.data
+        ){
+
+            setGstVerified(true);
+
+            showToast(
+                "GST Verified"
+            );
+
+        }
+        else{
+
+            setGstVerified(false);
+
+            showToast(
+                "Invalid GST",
+                false
+            );
+
+        }
+
+    }catch{
+
+        showToast(
+            "GST Verification Failed",
+            false
+        );
+
+    }
+
+}
 
   const handleSubmit = async () => {
 
@@ -93,6 +151,7 @@ useEffect(() => {
         name: form.name.trim(),
         phone: form.phone,
         address: form.address,
+        gst_no:form.gst_no,
         type: form.type,
         credit_enabled: form.credit_enabled,
         credit_limit: form.credit_enabled ? form.credit_limit : 0,
@@ -313,6 +372,36 @@ useEffect(() => {
             onChange={e => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
             style={inputStyle}
           />
+
+          {/* GST  */}
+
+          <input
+    placeholder="GST Number (Optional)"
+    value={form.gst_no}
+    onChange={(e)=>{
+
+        set("gst_no",
+            e.target.value.toUpperCase()
+        );
+
+        setGstVerified(false);
+
+    }}
+    style={inputStyle}
+/>
+
+<button
+    type="button"
+    onClick={verifyGST}
+>
+    Verify GST
+</button>
+
+{gstVerified &&
+<div style={{color:"green"}}>
+✔ GST Verified
+</div>
+}
 
           {/* ADDRESS */}
           <textarea
