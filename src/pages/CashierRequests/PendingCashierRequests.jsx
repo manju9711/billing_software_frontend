@@ -5,14 +5,19 @@ import {
   X,
   Search,
   ShieldCheck,
-  Users
+  Users,
+   ChevronLeft,
+  ChevronRight
 } from "lucide-react";
+
+const ITEMS_PER_PAGE = 5;
 
 export default function PendingCashierRequests() {
 
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [confirmBox, setConfirmBox] = useState({
   open: false,
   type: "",
@@ -94,6 +99,21 @@ export default function PendingCashierRequests() {
       ?.toLowerCase()
       .includes(search.toLowerCase())
   );
+
+  const totalPages = Math.max(
+  1,
+  Math.ceil(filtered.length / ITEMS_PER_PAGE)
+);
+
+const safePage = Math.min(
+  currentPage,
+  totalPages
+);
+
+const paginated = filtered.slice(
+  (safePage - 1) * ITEMS_PER_PAGE,
+  safePage * ITEMS_PER_PAGE
+);
 
   const getInitial = (name) =>
     name
@@ -471,9 +491,10 @@ export default function PendingCashierRequests() {
           type="text"
           placeholder="Search company, cashier or email..."
           value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
+          onChange={(e) => {
+  setSearch(e.target.value);
+  setCurrentPage(1);
+}}
           style={{
             width: "100%",
             padding: "15px 18px 15px 48px",
@@ -585,7 +606,8 @@ export default function PendingCashierRequests() {
 
         ) : (
 
-          filtered.map((item, index) => (
+          // filtered.map((item, index) => (
+            paginated.map((item, index) => (
 
             <div
               key={item.id}
@@ -595,10 +617,10 @@ export default function PendingCashierRequests() {
                   "2fr 1.5fr 1.5fr 2fr 1.3fr",
                 padding: "18px 24px",
                 alignItems: "center",
-                borderBottom:
-                  index !== filtered.length - 1
-                    ? "1px solid #f1f5f9"
-                    : "none"
+               borderBottom:
+  index !== paginated.length - 1
+    ? "1px solid #f1f5f9"
+    : "none"
               }}
             >
 
@@ -760,6 +782,154 @@ export default function PendingCashierRequests() {
           ))
         )}
 
+      
+      {filtered.length > ITEMS_PER_PAGE && (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "16px 22px",
+      borderTop: "1px solid #e2e8f0",
+      background: "#fafbff",
+      flexWrap: "wrap",
+      gap: 10
+    }}
+  >
+    <div
+      style={{
+        fontSize: 13,
+        color: "#64748b"
+      }}
+    >
+      Showing{" "}
+      <strong>
+        {(safePage - 1) * ITEMS_PER_PAGE + 1}-
+        {Math.min(
+          safePage * ITEMS_PER_PAGE,
+          filtered.length
+        )}
+      </strong>{" "}
+      of <strong>{filtered.length}</strong> requests
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }}
+    >
+      <button
+        disabled={safePage === 1}
+        onClick={() =>
+          setCurrentPage((p) => p - 1)
+        }
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          border: "1px solid #dbe2ea",
+          background: "#fff",
+          cursor:
+            safePage === 1
+              ? "not-allowed"
+              : "pointer",
+          opacity: safePage === 1 ? .5 : 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+      >
+        <ChevronLeft size={16} />
+      </button>
+
+      {Array.from(
+        { length: totalPages },
+        (_, i) => i + 1
+      )
+        .filter(
+          (p) =>
+            p === 1 ||
+            p === totalPages ||
+            Math.abs(p - safePage) <= 1
+        )
+        .reduce((acc, p, i, arr) => {
+          if (i > 0 && arr[i - 1] !== p - 1)
+            acc.push("...");
+          acc.push(p);
+          return acc;
+        }, [])
+        .map((item, i) =>
+          item === "..." ? (
+            <span
+              key={i}
+              style={{
+                padding: "0 5px",
+                color: "#94a3b8"
+              }}
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={item}
+              onClick={() =>
+                setCurrentPage(item)
+              }
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                border:
+                  safePage === item
+                    ? "none"
+                    : "1px solid #dbe2ea",
+                background:
+                  safePage === item
+                    ? "linear-gradient(135deg,#2563eb,#3b82f6)"
+                    : "#fff",
+                color:
+                  safePage === item
+                    ? "#fff"
+                    : "#475569",
+                fontWeight: 700,
+                cursor: "pointer"
+              }}
+            >
+              {item}
+            </button>
+          )
+        )}
+
+      <button
+        disabled={safePage === totalPages}
+        onClick={() =>
+          setCurrentPage((p) => p + 1)
+        }
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          border: "1px solid #dbe2ea",
+          background: "#fff",
+          cursor:
+            safePage === totalPages
+              ? "not-allowed"
+              : "pointer",
+          opacity:
+            safePage === totalPages ? .5 : 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+      >
+        <ChevronRight size={16} />
+      </button>
+    </div>
+  </div>
+)}
+      
       </div>
 
     </div>

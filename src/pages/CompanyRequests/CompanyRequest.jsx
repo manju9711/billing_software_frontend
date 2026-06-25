@@ -6,12 +6,17 @@ import {
   Check,
   X,
   Users,
+   ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+
+const ITEMS_PER_PAGE = 5;
 
 export default function CompanyRequest() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
 
   const fetchRequests = async () => {
@@ -112,6 +117,21 @@ export default function CompanyRequest() {
       );
     });
   }, [requests, search]);
+
+  const totalPages = Math.max(
+  1,
+  Math.ceil(filteredRequests.length / ITEMS_PER_PAGE)
+);
+
+const safePage = Math.min(
+  currentPage,
+  totalPages
+);
+
+const paginatedRequests = filteredRequests.slice(
+  (safePage - 1) * ITEMS_PER_PAGE,
+  safePage * ITEMS_PER_PAGE
+);
 
   return (
     <div
@@ -229,9 +249,10 @@ export default function CompanyRequest() {
 
         <input
           value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
+         onChange={(e) => {
+  setSearch(e.target.value);
+  setCurrentPage(1);
+}}
           placeholder="Search company, owner or email..."
           style={{
             border: "none",
@@ -297,7 +318,8 @@ export default function CompanyRequest() {
             No pending requests found
           </div>
         ) : (
-          filteredRequests.map((item) => (
+          // filteredRequests.map((item) => (
+            paginatedRequests.map((item, index) => (
             <div
   key={item.id}
   style={{
@@ -307,7 +329,9 @@ export default function CompanyRequest() {
       "2fr 1.5fr 1.2fr",
     alignItems: "center",
     borderBottom:
-      "1px solid #eef2f7"
+  index !== paginatedRequests.length - 1
+    ? "1px solid #eef2f7"
+    : "none"
   }}
 >
               {/* COMPANY */}
@@ -356,7 +380,9 @@ export default function CompanyRequest() {
         fontSize: 14
       }}
     >
-      Request ID #{item.id}
+      {/* Request ID #{item.id} */}
+      #{(safePage - 1) * ITEMS_PER_PAGE + index + 1}
+ • Request ID #{item.id}
     </div>
   </div>
 </div>
@@ -445,7 +471,159 @@ export default function CompanyRequest() {
             </div>
           ))
         )}
+      
+      {filteredRequests.length > ITEMS_PER_PAGE && (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "18px 24px",
+      borderTop: "1px solid #eef2f7",
+      background: "#fafbff",
+      flexWrap: "wrap",
+      gap: 10,
+    }}
+  >
+    <div
+      style={{
+        fontSize: 14,
+        color: "#64748b",
+      }}
+    >
+      Showing{" "}
+      <strong>
+        {(safePage - 1) * ITEMS_PER_PAGE + 1}-
+        {Math.min(
+          safePage * ITEMS_PER_PAGE,
+          filteredRequests.length
+        )}
+      </strong>{" "}
+      of{" "}
+      <strong>{filteredRequests.length}</strong>{" "}
+      requests
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+      }}
+    >
+      <button
+        disabled={safePage === 1}
+        onClick={() =>
+          setCurrentPage((p) => p - 1)
+        }
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          border: "1px solid #dbe2ea",
+          background: "#fff",
+          cursor:
+            safePage === 1
+              ? "not-allowed"
+              : "pointer",
+          opacity: safePage === 1 ? 0.45 : 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ChevronLeft size={16} />
+      </button>
+
+      {Array.from(
+        { length: totalPages },
+        (_, i) => i + 1
+      )
+        .filter(
+          (p) =>
+            p === 1 ||
+            p === totalPages ||
+            Math.abs(p - safePage) <= 1
+        )
+        .reduce((acc, p, i, arr) => {
+          if (i > 0 && arr[i - 1] !== p - 1)
+            acc.push("...");
+          acc.push(p);
+          return acc;
+        }, [])
+        .map((item, i) =>
+          item === "..." ? (
+            <span
+              key={i}
+              style={{
+                padding: "0 5px",
+                color: "#94a3b8",
+              }}
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={item}
+              onClick={() =>
+                setCurrentPage(item)
+              }
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                border:
+                  safePage === item
+                    ? "none"
+                    : "1px solid #dbe2ea",
+                background:
+                  safePage === item
+                    ? "linear-gradient(135deg,#2563eb,#3b82f6)"
+                    : "#fff",
+                color:
+                  safePage === item
+                    ? "#fff"
+                    : "#475569",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              {item}
+            </button>
+          )
+        )}
+
+      <button
+        disabled={safePage === totalPages}
+        onClick={() =>
+          setCurrentPage((p) => p + 1)
+        }
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          border: "1px solid #dbe2ea",
+          background: "#fff",
+          cursor:
+            safePage === totalPages
+              ? "not-allowed"
+              : "pointer",
+          opacity:
+            safePage === totalPages
+              ? 0.45
+              : 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ChevronRight size={16} />
+      </button>
+    </div>
+  </div>
+)}
       </div>
+    
     </div>
   );
 }
