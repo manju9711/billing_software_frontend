@@ -1928,6 +1928,11 @@ function emptyRow() {
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════════ */
 export default function Billing() {
+
+  const user    = JSON.parse(localStorage.getItem("user"));
+const adminId = user.role === "cashier" ? user.admin_id : user.id;
+
+
   const navigate = useNavigate();
 
   /* ── Product rows ── */
@@ -2225,7 +2230,7 @@ api.get(
       try {
         if (digits.length === 10) {
           const res = await api.get("/customer/get_by_phone.php", {
-            params: { company_id: selectedCompany, phone: digits }
+            params: { admin_id: adminId, q: value } 
           });
           if (res.data.status && res.data.data) {
             await selectCustomer(res.data.data);
@@ -2234,7 +2239,7 @@ api.get(
           }
         }
         const res = await api.get("/customer/customer_search.php", {
-          params: { company_id: selectedCompany, q: digits }
+        params: { admin_id: adminId, q: value } 
         });
         if (res.data.status) setPhoneSuggestions(res.data.data || []);
         else setPhoneSuggestions([]);

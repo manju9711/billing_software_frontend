@@ -50,6 +50,10 @@ export default function CustomerList() {
 
 const [companies, setCompanies] = useState([]);
 const [selectedCompany, setSelectedCompany] = useState("");
+const user = JSON.parse(localStorage.getItem("user"));
+const admin_id = user?.id;
+
+
 
 const loadCompanies = async () => {
 
@@ -84,120 +88,49 @@ const loadCompanies = async () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-const fetchCustomers = async (company_id) => {
-
-  if (!company_id) {
-
-    setCustomers([]);
-    setSelectedCustomer(null);
-    return;
-
-  }
-
+const fetchCustomers = async () => {
   try {
-
     const res = await api.get(
-      `/customer/get_all_customer.php?company_id=${company_id}`
+      `/customer/get_all_customer.php?admin_id=${admin_id}`
     );
-
     if (res.data.status) {
-
       setCustomers(res.data.data);
-
       if (res.data.data.length > 0) {
-
-        setSelectedCustomer(
-          res.data.data[0]
-        );
-
-        fetchCustomerHistory(
-          res.data.data[0].id,
-          company_id
-        );
-
-      } else {
-
-        setSelectedCustomer(null);
-
+        setSelectedCustomer(res.data.data[0]);
+        fetchCustomerHistory(res.data.data[0].id);
       }
-
     }
-
-  } catch (err) {
-
-    console.log(err);
-
-  }
-
+  } catch (err) { console.log(err); }
 };
 
-const fetchAllHistory = async (company_id) => {
 
-  if (!company_id) {
-
-    setAllHistory([]);
-    return;
-
-  }
-
+// fetchAllHistory — use admin_id
+const fetchAllHistory = async () => {
   try {
-
-    const res = await api.post(
-      "/invoice/get_pending_invoice_history.php",
-      {
-        company_id
-      }
-    );
-
-    if (res.data.status) {
-
-      setAllHistory(res.data.data);
-
-    }
-
-  } catch (err) {
-
-    console.log(err);
-
-  }
-
+    const res = await api.post("/invoice/get_pending_invoice_history.php", {
+      admin_id  // ← changed from company_id
+    });
+    if (res.data.status) setAllHistory(res.data.data);
+  } catch (err) { console.log(err); }
 };
 
-const fetchCustomerHistory = async (
-  customerId,
-  company_id
-) => {
-
+// fetchCustomerHistory — use admin_id
+const fetchCustomerHistory = async (customerId) => {
   try {
-
-    const res = await api.post(
-      "/invoice/get_pending_invoice_history.php",
-      {
-        company_id
-      }
-    );
-
+    const res = await api.post("/invoice/get_pending_invoice_history.php", {
+      admin_id
+    });
     if (res.data.status) {
-
       setInvoiceHistory(
-
         res.data.data.filter(
-          (item) =>
-            Number(item.customer_id) ===
-            Number(customerId)
+          (item) => Number(item.customer_id) === Number(customerId)
         )
-
       );
-
     }
-
-  } catch (err) {
-
-    console.log(err);
-
-  }
-
+  } catch (err) { console.log(err); }
 };
+
+
 
 const handleCompanyChange = async (e) => {
 
@@ -217,10 +150,11 @@ const handleCompanyChange = async (e) => {
 };
 
 useEffect(() => {
-
-  loadCompanies();
-
+  fetchCustomers();
+  fetchAllHistory();
 }, []);
+
+
   /* ── preview recalc ── */
   useEffect(() => {
     const pending = invoiceHistory.filter((i) => Number(i.balance_amount) > 0);
@@ -662,58 +596,7 @@ useEffect(() => {
           </div>
 
 
-          <div
-  style={{
-    display:"flex",
-    alignItems:"center",
-    width:"320px",
-    background:"#fff",
-    border:"1px solid #dbeafe",
-    borderRadius:"14px",
-    padding:"12px 15px",
-    marginTop:"15px",
-    boxShadow:"0 4px 16px rgba(37,99,235,.08)"
-  }}
->
-  <span
-    style={{
-      marginRight:"10px",
-      fontSize:"18px"
-    }}
-  >
-    🏢
-  </span>
 
-  <select
-    value={selectedCompany}
-    onChange={handleCompanyChange}
-    style={{
-      flex:1,
-      border:"none",
-      outline:"none",
-      background:"transparent",
-      fontSize:"14px",
-      fontWeight:"700",
-      cursor:"pointer"
-    }}
-  >
-    <option value="">
-      Select Company
-    </option>
-
-    {companies.map((c) => (
-
-      <option
-        key={c.id}
-        value={c.id}
-      >
-        {c.company_name}
-      </option>
-
-    ))}
-
-  </select>
-</div>
 
 
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
@@ -755,15 +638,12 @@ useEffect(() => {
                 const isSelected = selectedCustomer?.id === c.id;
                 return (
                   <div key={c.id} className="cust-row"
-                    onClick={() => {
-                      setSelectedCustomer(c);
-                      fetchCustomerHistory(
-  c.id,
-  selectedCompany
-);
-                      setCollectAmount("");
-                      setPreview([]);
-                    }}
+                 onClick={() => {
+  setSelectedCustomer(c);
+  fetchCustomerHistory(c.id);  // ← selectedCompany remove pannitu
+  setCollectAmount("");
+  setPreview([]);
+}}
                     style={{
                       padding:"12px 14px", borderBottom:"1px solid #f1f5f9",
                       cursor:"pointer",
