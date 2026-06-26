@@ -26,6 +26,7 @@ const STYLE = `
     box-sizing:border-box;
   }
 
+  
   .af-input:focus{
     background:#fff;
     border-color:#3b82f6;

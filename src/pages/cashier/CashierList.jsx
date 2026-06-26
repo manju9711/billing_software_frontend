@@ -455,7 +455,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-const PER_PAGE = 5;
+const PER_PAGE = 10;
 
 export default function CashierList() {
 

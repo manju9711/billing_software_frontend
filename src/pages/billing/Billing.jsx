@@ -3161,15 +3161,21 @@ if (!selectedCompany) {
                     : "Amount Received (₹)"
                   }
                 </label>
-                <input
-                  type="number"
-                  className="bill-input"
-                  placeholder={`₹${effectiveTotal > 0 ? effectiveTotal.toFixed(2) : "0.00"}`}
-                  value={payment.received}
-                  onChange={e => setPayment(p => ({...p, received: e.target.value}))}
-                  onWheel={e => e.target.blur()}
-                  style={{ fontSize:16, fontWeight:700, marginBottom:12 }}
-                />
+              <input
+  type="number"
+  className="bill-input"
+  placeholder={`₹${effectiveTotal > 0 ? effectiveTotal.toFixed(2) : "0.00"}`}
+  value={payment.received}
+  readOnly
+  onWheel={e => e.target.blur()}
+  style={{
+    fontSize:16,
+    fontWeight:700,
+    marginBottom:12,
+    background:"#f8fafc",
+    cursor:"not-allowed"
+  }}
+/>
 
                 {/* ══════════════════════════════════════════════
                     CUSTOMER PENDING & ADVANCE INFO BOX

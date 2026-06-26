@@ -329,7 +329,9 @@
 //   );
 // }
 
-import { useEffect, useState } from "react";
+
+
+import { useEffect, useState, useRef } from "react";
 import api from "../../services/api";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -337,7 +339,7 @@ import {
 } from "recharts";
 import {
   TrendingUp, Package, AlertTriangle,
-  ShoppingBag, BarChart2, Wallet, Clock, IndianRupee
+  ShoppingBag, BarChart2, Wallet, Clock, IndianRupee,Bell 
 } from "lucide-react";
 
 function useStyles() {
@@ -453,6 +455,20 @@ export default function Dashboard() {
   const [loading, setLoading]           = useState(false);
   const [activeBar, setActiveBar]       = useState(null);
 
+
+  const [showNotif,   setShowNotif]   = useState(false);
+const [overdueList, setOverdueList] = useState([]);
+const user = JSON.parse(localStorage.getItem("user") || "{}");
+const isAdmin = user?.role === "admin";
+const bellRef = useRef(null);
+
+
+const [notifPos, setNotifPos] = useState({
+  top: 0,
+  left: 0,
+});
+
+
   /* ── Load Companies on Mount ── */
   useEffect(() => {
     const loadCompanies = async () => {
@@ -513,15 +529,45 @@ export default function Dashboard() {
     } catch (e) { console.error(e); }
   };
 
-  const fetchCreditDashboard = async (companyId) => {
-    try {
-      const res = await api.get(`/dashboard/get_dashboard.php?company_id=${companyId}`);
-      if (res.data.status) {
-        setCreditStats(res.data.cards);
-        setCreditList(res.data.list);
-      }
-    } catch (e) { console.error(e); }
-  };
+const fetchCreditDashboard = async (companyId) => {
+  try {
+    const res = await api.get(`/dashboard/get_dashboard.php?company_id=${companyId}`);
+    if (res.data.status) {
+      setCreditStats(res.data.cards);
+      setCreditList(res.data.list);
+      // ← add this
+      const overdue = res.data.list.filter(c => c.status === "Overdue");
+      setOverdueList(overdue);
+    }
+  } catch (e) { console.error(e); }
+};
+
+const fetchNotifications = async () => {
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const adminId =
+        user.role === "cashier"
+            ? user.admin_id
+            : user.id;
+
+    const res = await api.get(
+        `/dashboard/get_admin_overdue_notifications.php?admin_id=${adminId}`
+    );
+
+    if(res.data.status){
+
+        setOverdueList(res.data.data);
+
+    }
+
+}
+
+useEffect(()=>{
+
+    fetchNotifications();
+
+},[]);
 
   /* ── Company Change Handler ── */
   const handleCompanyChange = (e) => {
@@ -533,11 +579,23 @@ export default function Dashboard() {
   const thStyle = { padding: "10px 20px", textAlign: "left", fontSize: 11, fontWeight: 700, letterSpacing: ".07em", textTransform: "uppercase", color: "#9ca3af", borderBottom: "1px solid #f3f4f6" };
   const tdStyle = (bg = "#fff") => ({ padding: "13px 20px", fontSize: 14, color: "#374151", background: bg });
 
+
+  useEffect(() => {
+  const handler = (e) => {
+    if (!e.target.closest(".notif-bell")) setShowNotif(false);
+  };
+  if (showNotif) document.addEventListener("mousedown", handler);
+  return () => document.removeEventListener("mousedown", handler);
+}, [showNotif]);
+
+
   return (
     <div className="db" style={{ fontFamily: font }}>
 
       {/* ── Header with Company Dropdown ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, animation: "db-up .35s ease both", flexWrap: "wrap", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, animation: "db-up .35s ease both", flexWrap: "wrap", gap: 14, overflow: "visible",  // ← ADD THIS
+  position: "relative", // ← ADD THIS
+  zIndex: 100   }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#1e1b4b" }}>Dashboard</h1>
           <p style={{ margin: "3px 0 0", fontSize: 13, color: "#9ca3af" }}>Welcome back — here's what's happening today</p>
@@ -576,6 +634,139 @@ export default function Dashboard() {
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,.2)" }} />
             <span style={{ fontSize: 12, fontWeight: 700, color: "#4338ca" }}>Live data</span>
           </div>
+
+          {/* Bell Notification — admin only */}
+{isAdmin && (
+  <div ref={bellRef} style={{ position:"relative", zIndex: 1000 }}>
+    <button
+    className="notif-bell"
+      onClick={() => setShowNotif(v => !v)}
+      style={{
+        width:42, height:42, borderRadius:12,
+        border:"1.5px solid #e0e7ff",
+        background: showNotif ? "#eef2ff" : "#fff",
+        cursor:"pointer",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        boxShadow:"0 4px 16px rgba(99,102,241,.08)",
+        position:"relative",
+      }}
+    >
+      <Bell size={18} color="#4338ca"/>
+      {overdueList.length > 0 && (
+        <span style={{
+          position:"absolute", top:-6, right:-6,
+          background:"#dc2626", color:"#fff",
+          borderRadius:"50%", width:20, height:20,
+          display:"flex", alignItems:"center",
+          justifyContent:"center", fontSize:11, fontWeight:800,
+        }}>
+          {overdueList.length}
+        </span>
+      )}
+    </button>
+
+    {/* NOTIFICATION DROPDOWN */}
+    {showNotif && (
+      <div style={{
+        position:"absolute",
+top:"52px",
+right:0,
+        width:340, background:"#fff",
+        borderRadius:18, border:"1.5px solid #e0e7ff",
+        boxShadow:"0 16px 48px rgba(99,102,241,.18)",
+        zIndex:9999, overflow:"hidden",
+        animation:"db-up .2s ease both",
+      }}>
+        {/* Header */}
+        <div style={{
+          background:"linear-gradient(135deg,#1e1b4b,#4338ca)",
+          padding:"14px 18px",
+          display:"flex", justifyContent:"space-between", alignItems:"center",
+        }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <Bell size={15} color="#fff"/>
+            <span style={{ color:"#fff", fontWeight:800, fontSize:14 }}>
+              Overdue Alerts
+            </span>
+          </div>
+          <span style={{
+            background:"#dc2626", color:"#fff",
+            borderRadius:20, padding:"2px 10px",
+            fontSize:11, fontWeight:800,
+          }}>
+            {overdueList.length} overdue
+          </span>
+        </div>
+
+        {/* List */}
+        <div style={{ maxHeight:320, overflowY:"auto" }}>
+          {overdueList.length === 0 ? (
+            <div style={{ padding:"32px 20px", textAlign:"center", color:"#9ca3af" }}>
+              <div style={{ fontSize:32, marginBottom:8 }}>✅</div>
+              <div style={{ fontWeight:700 }}>No overdue customers</div>
+            </div>
+          ) : overdueList.map((c, i) => (
+            <div key={i} style={{
+              padding:"12px 18px",
+              borderBottom:"1px solid #f1f5f9",
+              display:"flex", justifyContent:"space-between", alignItems:"center",
+            }}>
+              <div>
+                <div style={{ fontWeight:700, fontSize:13, color:"#1e1b4b" }}>
+                  {c.customer}
+                </div>
+                <div style={{ fontSize:11, color:"#dc2626", marginTop:2, fontWeight:600 }}>
+                  Due: {c.due_date}
+                </div>
+              </div>
+              <div style={{ textAlign:"right" }}>
+                <div style={{ fontWeight:800, fontSize:14, color:"#dc2626" }}>
+                  ₹{Number(c.outstanding).toLocaleString()}
+                </div>
+                <span style={{
+                  background:"#fee2e2", color:"#dc2626",
+                  borderRadius:20, padding:"2px 8px",
+                  fontSize:10, fontWeight:700,
+                }}>
+                  Overdue
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        {overdueList.length > 0 && (
+          <div style={{
+            padding:"12px 18px", borderTop:"1px solid #f1f5f9",
+            background:"#fafafa", textAlign:"center",
+          }}>
+            <span style={{ fontSize:12, color:"#6366f1", fontWeight:700, cursor:"pointer" }}
+onClick={() => {
+
+    if (bellRef.current) {
+
+        const rect = bellRef.current.getBoundingClientRect();
+
+        setNotifPos({
+            top: rect.bottom + 10,
+            left: rect.right - 340,
+        });
+
+    }
+
+    setShowNotif(v => !v);
+
+}}            >
+              Total Overdue: ₹{overdueList.reduce((s,c) => s + Number(c.outstanding), 0).toLocaleString()}
+            </span>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+)}
+
         </div>
       </div>
 

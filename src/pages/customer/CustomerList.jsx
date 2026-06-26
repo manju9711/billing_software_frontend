@@ -1031,6 +1031,7 @@ const [selectedCompany, setSelectedCompany] = useState("");
 const user = JSON.parse(localStorage.getItem("user"));
 const admin_id = user?.id;
 
+const [selectedRows, setSelectedRows] = useState([]);
 
 
 const loadCompanies = async () => {
@@ -1187,24 +1188,30 @@ useEffect(() => {
   };
 
   /* ── excel ── */
-  const downloadExcel = () => {
-    const rows = invoiceHistory.map((item) => ({
-      "Payment Method": item.payment_method || "-",
-      Total: item.total_amount, Paid: item.paid_amount_total,
-      Pending: item.balance_amount,
-      "Due Date": item.due_date ? formatDate(item.due_date) : "-",
-      Status: Number(item.balance_amount) <= 0 ? "Paid" : "Not Paid",
-    }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    ws["!cols"] = [18,15,15,15,18,18].map((w) => ({ wch: w }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Customer Report");
-    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    saveAs(
-      new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
-      `${selectedCustomer?.name || "customer"}_report.xlsx`
-    );
-  };
+const downloadExcel = () => {
+  const source = selectedRows.length > 0
+    ? invoiceHistory.filter((_, i) => selectedRows.includes(i))
+    : invoiceHistory;
+
+  const rows = source.map((item) => ({
+    "Payment Method": item.payment_method || "-",
+    Total: item.total_amount,
+    Paid: item.paid_amount_total,
+    Pending: item.balance_amount,
+    "Due Date": item.due_date ? formatDate(item.due_date) : "-",
+    Status: Number(item.balance_amount) <= 0 ? "Paid" : "Not Paid",
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws["!cols"] = [18, 15, 15, 15, 18, 18].map((w) => ({ wch: w }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Customer Report");
+  const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  saveAs(
+    new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+    `${selectedCustomer?.name || "customer"}_report.xlsx`
+  );
+};
 
   const filtered = customers.filter(
     (c) => c.name?.toLowerCase().includes(search.toLowerCase()) || c.phone?.includes(search)
@@ -1632,9 +1639,10 @@ useEffect(() => {
 
 
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-            <button onClick={downloadExcel} style={btnGreen}>
-              <Download size={15}/> Excel Download
-            </button>
+           <button onClick={downloadExcel} style={btnGreen}>
+  <Download size={15}/>
+  {selectedRows.length > 0 ? `Download (${selectedRows.length})` : "Excel Download"}
+</button>
             <button onClick={() => navigate("/customer/add")} style={btnRed}>
               + Add Customer
             </button>
@@ -1670,11 +1678,12 @@ useEffect(() => {
                 const isSelected = selectedCustomer?.id === c.id;
                 return (
                   <div key={c.id} className="cust-row"
-                 onClick={() => {
+onClick={() => {
   setSelectedCustomer(c);
-  fetchCustomerHistory(c.id);  // ← selectedCompany remove pannitu
+  fetchCustomerHistory(c.id);
   setCollectAmount("");
   setPreview([]);
+  setSelectedRows([]); // ← add this line
 }}
                     style={{
                       padding:"12px 14px", borderBottom:"1px solid #f1f5f9",
@@ -1789,24 +1798,38 @@ useEffect(() => {
               </div>
             )}
 
-            {/* table header */}
-            <div style={{
-              display:"grid",
-              gridTemplateColumns:"1.2fr .8fr .8fr .8fr 1fr 1fr",
-              padding:"11px 20px",
-              background:"#f8fafc",
-              borderBottom:"1px solid #e5e7eb",
-              fontWeight:700, fontSize:12, color:"#64748b",
-              textTransform:"uppercase", letterSpacing:".5px",
-              textAlign:"center"
-            }}>
-              <span style={{ textAlign:"left" }}>Payment Method</span>
-              <span>Total</span>
-              <span>Paid</span>
-              <span>Pending</span>
-              <span>Due Date</span>
-              <span>Status</span>
-            </div>
+         {/* table header */}
+<div style={{
+  display:"grid",
+  gridTemplateColumns:"40px 1.2fr .8fr .8fr .8fr 1fr 1fr",
+  padding:"11px 20px",
+  background:"#f8fafc",
+  borderBottom:"1px solid #e5e7eb",
+  fontWeight:700, fontSize:12, color:"#64748b",
+  textTransform:"uppercase", letterSpacing:".5px",
+  textAlign:"center"
+}}>
+  <span style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
+    <input
+      type="checkbox"
+      style={{ width:15, height:15, cursor:"pointer", accentColor:"#2563eb" }}
+      checked={invoiceHistory.length > 0 && selectedRows.length === invoiceHistory.length}
+      onChange={(e) => {
+        if (e.target.checked) {
+          setSelectedRows(invoiceHistory.map((_, i) => i));
+        } else {
+          setSelectedRows([]);
+        }
+      }}
+    />
+  </span>
+  <span style={{ textAlign:"left" }}>Payment Method</span>
+  <span>Total</span>
+  <span>Paid</span>
+  <span>Pending</span>
+  <span>Due Date</span>
+  <span>Status</span>
+</div>
 
             {/* rows */}
             <div style={{ overflowY:"auto", flex:1 }}>
@@ -1823,49 +1846,76 @@ useEffect(() => {
                   </p>
                 </div>
               ) : (
-                invoiceHistory.map((item, index) => {
-                  const isPaid = Number(item.balance_amount) <= 0;
-                  return (
-                    <div key={index} style={{
-                      display:"grid",
-                      gridTemplateColumns:"1.2fr .8fr .8fr .8fr 1fr 1fr",
-                      padding:"14px 20px",
-                      alignItems:"center", textAlign:"center",
-                      borderBottom:"1px solid #f8fafc",
-                      background:"#fff"
-                    }}>
-                      <div style={{ textAlign:"left", fontWeight:600, fontSize:13, textTransform:"capitalize" }}>
-                        {item.payment_method || "-"}
-                      </div>
-                      <div style={{ fontSize:13 }}>₹{fmt(item.total_amount)}</div>
-                      <div style={{ fontWeight:700, color:"#16a34a", fontSize:13 }}>
-                        ₹{fmt(item.paid_amount_total)}
-                      </div>
-                      <div>
-                        <span style={{
-                          background: isPaid ? "#f0fdf4" : "#fee2e2",
-                          color:      isPaid ? "#16a34a" : "#dc2626",
-                          padding:"4px 10px", borderRadius:8, fontSize:12, fontWeight:700
-                        }}>
-                          ₹{fmt(item.balance_amount)}
-                        </span>
-                      </div>
-                      <div style={{ fontSize:13, color:"#64748b" }}>
-                        {item.due_date ? formatDate(item.due_date) : "-"}
-                      </div>
-                      <div>
-                        <span style={{
-                          padding:"5px 14px", borderRadius:20, fontSize:11, fontWeight:700,
-                          background: isPaid ? "#dcfce7" : "#fee2e2",
-                          color:      isPaid ? "#15803d" : "#dc2626",
-                          display:"inline-block", minWidth:72, textAlign:"center"
-                        }}>
-                          {isPaid ? "Paid" : "Not Paid"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
+              invoiceHistory.map((item, index) => {
+  const isPaid = Number(item.balance_amount) <= 0;
+  const isChecked = selectedRows.includes(index);
+  return (
+    <div key={index} style={{
+      display:"grid",
+      gridTemplateColumns:"40px 1.2fr .8fr .8fr .8fr 1fr 1fr",
+      padding:"14px 20px",
+      alignItems:"center", textAlign:"center",
+      borderBottom:"1px solid #f8fafc",
+      background: isChecked ? "#eff6ff" : "#fff",
+      cursor:"pointer",
+      transition:"background .15s"
+    }}
+      onClick={() => {
+        setSelectedRows(prev =>
+          prev.includes(index)
+            ? prev.filter(i => i !== index)
+            : [...prev, index]
+        );
+      }}
+    >
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <input
+          type="checkbox"
+          style={{ width:15, height:15, cursor:"pointer", accentColor:"#2563eb" }}
+          checked={isChecked}
+          onChange={() => {
+            setSelectedRows(prev =>
+              prev.includes(index)
+                ? prev.filter(i => i !== index)
+                : [...prev, index]
+            );
+          }}
+        />
+      </div>
+      <div style={{ textAlign:"left", fontWeight:600, fontSize:13, textTransform:"capitalize" }}>
+        {item.payment_method || "-"}
+      </div>
+      <div style={{ fontSize:13 }}>₹{fmt(item.total_amount)}</div>
+      <div style={{ fontWeight:700, color:"#16a34a", fontSize:13 }}>
+        ₹{fmt(item.paid_amount_total)}
+      </div>
+      <div>
+        <span style={{
+          background: isPaid ? "#f0fdf4" : "#fee2e2",
+          color:      isPaid ? "#16a34a" : "#dc2626",
+          padding:"4px 10px", borderRadius:8, fontSize:12, fontWeight:700
+        }}>
+          ₹{fmt(item.balance_amount)}
+        </span>
+      </div>
+      <div style={{ fontSize:13, color:"#64748b" }}>
+        {item.due_date ? formatDate(item.due_date) : "-"}
+      </div>
+      <div>
+        <span style={{
+          padding:"5px 14px", borderRadius:20, fontSize:11, fontWeight:700,
+          background: isPaid ? "#dcfce7" : "#fee2e2",
+          color:      isPaid ? "#15803d" : "#dc2626",
+          display:"inline-block", minWidth:72, textAlign:"center"
+        }}>
+          {isPaid ? "Paid" : "Not Paid"}
+        </span>
+      </div>
+    </div>
+  );
+})
               )}
             </div>
           </div>

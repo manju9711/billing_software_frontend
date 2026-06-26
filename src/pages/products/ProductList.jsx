@@ -727,6 +727,41 @@ const handleCompanyChange = async(e) => {
 
           </table>
 
+          {!loading && filtered.length > ITEMS_PER_PAGE && (
+  <div style={{
+    display:"flex", alignItems:"center", justifyContent:"space-between",
+    padding:"14px 20px", borderTop:"1px solid #f1f5f9", background:"#f8fbff",
+  }}>
+    <span style={{ fontSize:13, color:"#64748b" }}>
+      Showing <b>{(safePage-1)*ITEMS_PER_PAGE+1}–{Math.min(safePage*ITEMS_PER_PAGE, filtered.length)}</b> of <b>{filtered.length}</b>
+    </span>
+    <div style={{ display:"flex", gap:6 }}>
+      <button onClick={() => setCurrentPage(p => Math.max(1, p-1))}
+        disabled={safePage===1}
+        style={{ width:34, height:34, borderRadius:10, border:"1px solid #e2e8f0",
+          background:"#fff", cursor:safePage===1?"not-allowed":"pointer",
+          opacity:safePage===1?0.5:1, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>
+        ‹
+      </button>
+      {Array.from({ length: totalPages }, (_, i) => i+1).map(p => (
+        <button key={p} onClick={() => setCurrentPage(p)} style={{
+          width:34, height:34, borderRadius:10, border:"1px solid #e2e8f0",
+          background:safePage===p?"#2563eb":"#fff",
+          color:safePage===p?"#fff":"#374151",
+          fontWeight:700, fontSize:13, cursor:"pointer",
+        }}>{p}</button>
+      ))}
+      <button onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))}
+        disabled={safePage===totalPages}
+        style={{ width:34, height:34, borderRadius:10, border:"1px solid #e2e8f0",
+          background:"#fff", cursor:safePage===totalPages?"not-allowed":"pointer",
+          opacity:safePage===totalPages?0.5:1, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>
+        ›
+      </button>
+    </div>
+  </div>
+)}
+
         </div>
 
       </div>

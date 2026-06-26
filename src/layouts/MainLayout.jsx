@@ -70,7 +70,7 @@ export default function MainLayout() {
           { name: "Billing", path: "/billing", icon: <ReceiptText size={20} /> },
           { name: "Reports", path: "/reports", icon: <BarChart3 size={20} /> },
           { name: "Pending Invoice", path: "/payment-pending", icon: <AlertCircle  size={20} /> },
-          { name: "Pending Invoice History", path: "/paymentpending-history", icon: <AlertCircle  size={20} /> }
+          // { name: "Pending Invoice History", path: "/paymentpending-history", icon: <AlertCircle  size={20} /> }
         ]
       : [])
   ];
