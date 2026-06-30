@@ -2354,9 +2354,9 @@ if (
   showToast("Enter a valid 10-digit phone number!", "error");
   return;
 }
-    if (billType === "gst_bill" && !customer.gst_no.trim()) {
-      showToast("GST Number is mandatory for GST Bill!", "error"); return;
-    }
+    // if (billType === "gst_bill" && !customer.gst_no.trim()) {
+    //   showToast("GST Number is mandatory for GST Bill!", "error"); return;
+    // }
    
     if (validRows.length === 0) { showToast("Add at least one product!", "error"); return; }
 
@@ -2760,7 +2760,7 @@ if (!selectedCompany) {
           {billType === "gst_bill" && (
             <div style={{ animation:"slideDown .25s ease both" }}>
               <label style={{ fontSize:11, fontWeight:600, color:"#d97706", letterSpacing:".08em", textTransform:"uppercase", display:"block", marginBottom:6 }}>
-                GST Number * <span style={{ fontSize:10, color:"#94a3b8", fontWeight:400, textTransform:"none" }}>(mandatory for GST Bill)</span>
+                GST Number  <span style={{ fontSize:10, color:"#94a3b8", fontWeight:400, textTransform:"none" }}>  (Optional)</span>
               </label>
               <div style={{ position:"relative" }}>
                 <input

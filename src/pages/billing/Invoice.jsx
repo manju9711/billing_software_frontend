@@ -657,7 +657,8 @@ const balance = invoice.paid_amount - invoice.total_amount;
         <div>Ph: {company?.phone}</div>
         {/* <div>GSTIN: {company?.gstin}</div> */}
         <div>
-  GSTIN: {invoice.gst_no || company?.gstin}
+  {/* GSTIN: {invoice.gst_no || company?.gstin} */}
+   GSTIN: {invoice.gst_no || "-"}
 </div>
       </div>
 
