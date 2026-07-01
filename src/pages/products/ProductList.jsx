@@ -542,7 +542,7 @@ const handleCompanyChange = async(e) => {
               <tr>
                 <th>#</th>
                 <th>Product</th>
-                <th className="center">Code</th>
+                <th className="center">HSN Code</th>
                 <th className="center">Price</th>
                 <th className="center">Stock</th>
                 <th className="center">GST</th>

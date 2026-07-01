@@ -1921,7 +1921,7 @@ function Toast({ toasts }) {
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 function emptyRow() {
-  return { product_id:null, name:"", price:0, qty:0, gst:0, unit:"", stock:0 };
+  return { product_id:null, name:"", product_code:"", price:0, qty:0, gst:0, unit:"", stock:0 };
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -2206,7 +2206,8 @@ api.get(
       console.log("SEARCH COMPANY", selectedCompany);
       try {
         const res = await api.get("/customer/customer_search.php", {
-          params: { company_id: selectedCompany, q: value }
+          // params: { company_id: selectedCompany, q: value }
+          params: { admin_id: adminId, q: value } 
         });
         if (res.data.status) setNameSuggestions(res.data.data || []);
         else setNameSuggestions([]);
@@ -2283,6 +2284,7 @@ api.get(
     updated[index] = {
       product_id: p.id,
       name:  p.product_name,
+      product_code: p.product_code,  
       price: Number(p.price),
       gst:   Number(p.gst_percentage),
       qty:   1,
@@ -2329,6 +2331,7 @@ api.get(
     if (customer.id) return customer.id;
     const res = await api.post("/customer/customer_save.php", {
       company_id: selectedCompany,
+      admin_id:   adminId, 
       // name:       customer.name,
       name: customer.name || "Customer",
       phone:      customer.phone,

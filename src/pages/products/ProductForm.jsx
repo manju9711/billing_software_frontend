@@ -1248,7 +1248,7 @@ if (
             
 <div className="pf-field">
   <label className="pf-label">
-    Product Code
+    HSN Code
   </label>
 
   <div className="pf-input-wrap">
@@ -1310,7 +1310,7 @@ if (
               </div>
             </div>
 
-            <div className="pf-field">
+            {/* <div className="pf-field">
               <label className="pf-label">Unit <span style={{color:"#ef4444"}}>*</span></label>
               <div className="pf-input-wrap">
                 <span className="pf-input-icon">📏</span>
@@ -1321,7 +1321,43 @@ if (
                   onChange={e => set("unit", e.target.value)}
                 />
               </div>
-            </div> 
+            </div>  */}
+
+            <div className="pf-field">
+  <label className="pf-label">
+    Unit <span style={{ color: "#ef4444" }}>*</span>
+  </label>
+
+  <div className="pf-select-wrap pf-input-wrap">
+    <span className="pf-input-icon">📏</span>
+
+    <select
+      className="pf-select"
+      value={form.unit}
+      onChange={(e) => set("unit", e.target.value)}
+    >
+      <option value="">Select Unit</option>
+      <option value="Piece">Piece</option>
+      <option value="Kg">Kg</option>
+      <option value="Gram">Gram</option>
+      <option value="Litre">Litre</option>
+      <option value="ML">ML</option>
+      <option value="Meter">Meter</option>
+      <option value="Feet">Feet</option>
+      <option value="Box">Box</option>
+      <option value="Pack">Pack</option>
+      <option value="Dozen">Dozen</option>
+      <option value="Pair">Pair</option>
+      <option value="Roll">Roll</option>
+      <option value="Bag">Bag</option>
+      <option value="Bottle">Bottle</option>
+      <option value="Can">Can</option>
+      <option value="Set">Set</option>
+    </select>
+
+    <span className="pf-select-arrow">▾</span>
+  </div>
+</div>
 
             {/* ── GST (conditional) ── */}
             <div className="pf-field">

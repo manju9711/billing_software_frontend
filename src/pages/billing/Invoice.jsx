@@ -82,7 +82,20 @@ function DesignOriginal({ invoice, company, color, logoUrl }) {
               return (
                 <tr key={i}>
                   <td className="border p-2 text-center">{i + 1}</td>
-                  <td className="border p-2">{p.display_name || `${p.name}`}</td>
+                  {/* <td className="border p-2">{p.display_name || `${p.name}`}</td> */}
+                  <div>
+  <div>{p.display_name || p.name}</div>
+
+  <div
+    style={{
+      fontSize: "10px",
+      color: "#666",
+      marginTop: "2px"
+    }}
+  >
+    HSN: {p.product_code || "-"}
+  </div>
+</div>
                   <td className="border p-2 text-center">{p.qty}</td>
                   <td className="border p-2 text-right">₹{p.price}</td>
                   <td className="border p-2 text-right">
@@ -695,7 +708,15 @@ const balance = invoice.paid_amount - invoice.total_amount;
         return (
           <div key={i} style={{ marginBottom: 4 }}>
             <div style={S.tableRow}>
-              <div style={{ flex: 2 }}>{p.name}</div>
+              {/* <div style={{ flex: 2 }}>{p.name}</div> */}
+              <div style={{ flex: 2 }}>
+          {p.name}
+          {p.product_code && (
+            <div>
+              {p.product_code}
+            </div>
+          )}
+        </div>
               <div style={{ flex: 1, textAlign: "right" }}>{p.price}</div>
               <div style={{ flex: 1, textAlign: "right" }}>{p.qty}</div>
               <div style={{ flex: 1, textAlign: "right" }}>{amount}</div>
@@ -947,5 +968,4 @@ export default function InvoicePreview() {
     </div>
   );
 }
-
 
