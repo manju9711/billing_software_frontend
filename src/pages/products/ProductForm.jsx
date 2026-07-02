@@ -618,7 +618,6 @@
 
 
 //add unit field
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Barcode from "react-barcode";
@@ -658,6 +657,8 @@ function ToastPortal({ toasts, remove }) {
 export default function ProductForm() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(false);
   const [barcodeKey, setBarcodeKey] = useState(0);
   const [gstEnabled, setGstEnabled] = useState(false);
@@ -701,7 +702,8 @@ const loadCompanies = async(admin_id) => {
 
 };
   const [form, setForm] = useState({
-    name: "", product_code: "", price: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
+    name: "", product_code: "", price: "", brand: "",
+  subcategory_id: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
   });
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
@@ -774,6 +776,63 @@ const fetchCategories = async (company_id) => {
   }
 
 };
+
+const fetchSubCategories = async (company_id,category_id) => {
+
+  if (!category_id) {
+    setSubCategories([]);
+    return;
+  }
+
+  try {
+
+    const res = await api.get(
+      `/subcategory/get_active_subcategory.php?company_id=${company_id}&category_id=${category_id}`
+    );
+
+    if (res.data.status) {
+      setSubCategories(res.data.data);
+    } else {
+      setSubCategories([]);
+    }
+
+  } catch (err) {
+    console.log(err);
+  }
+
+};
+
+const fetchBrands = async (company_id, category_id, subcategory_id) => {
+
+  if (!company_id || !category_id || !subcategory_id) {
+    setBrands([]);
+    return;
+  }
+
+  try {
+
+    const res = await api.get(
+      `/brand/get_active_brand.php?company_id=${company_id}&category_id=${category_id}&subcategory_id=${subcategory_id}`
+    );
+
+    if (res.data.status) {
+
+      setBrands(res.data.data);
+
+    } else {
+
+      setBrands([]);
+
+    }
+
+  } catch (err) {
+
+    console.log(err);
+    setBrands([]);
+
+  }
+
+};
 const fetchProducts = async(company_id) => {
 
   if(!company_id){
@@ -834,12 +893,16 @@ const handleCompanyChange = (e) => {
     // Reset previous category
     setForm(prev => ({
         ...prev,
-        category_id: ""
+        category_id: "",
+         subcategory_id: "",
+          brand: ""
     }));
-
+    
     fetchCategories(companyId);
     fetchCompanyGST(companyId);
     fetchProducts(companyId);
+    setSubCategories([]);
+    setBrands([]);
 
 };
 
@@ -852,6 +915,28 @@ const handleCompanyChange = (e) => {
   const handleSubmit = async () => {
     if (!form.name.trim())    { show("warn", "Missing Field", "Product name is required."); return; }
     if (!form.category_id)    { show("warn", "Missing Field", "Please select a category."); return; }
+    if (!form.subcategory_id) {
+
+    show(
+        "warn",
+        "Missing Field",
+        "Please select a sub category."
+    );
+
+    return;
+
+}
+if (!form.brand) {
+
+  show(
+    "warn",
+    "Missing Field",
+    "Please select a brand."
+  );
+
+  return;
+
+}
     if (!form.price)          { show("warn", "Missing Field", "Price is required."); return; }
     if (isNaN(Number(form.price)) || Number(form.price) < 0) { show("warn", "Invalid Price", "Please enter a valid price."); return; }
     if (!form.stock)          { show("warn", "Missing Field", "Stock quantity is required."); return; }
@@ -881,6 +966,8 @@ if (
         product_name: form.name,
         product_code: form.product_code,
         category_id: form.category_id,
+        subcategory_id: form.subcategory_id,
+         brand: form.brand,
         company_id: getCompanyId(),
         price: form.price,
         stock: form.stock,
@@ -1274,17 +1361,136 @@ if (
               <label className="pf-label">Category <span style={{color:"#ef4444"}}>*</span></label>
               <div className="pf-select-wrap pf-input-wrap">
                 <span className="pf-input-icon">🗂️</span>
-                <select className="pf-select"
+                {/* <select className="pf-select"
                   value={form.category_id}
-                  onChange={e => set("category_id", e.target.value)}>
+                  onChange={e => set("category_id", e.target.value)}> 
                   <option value="">Select a category…</option>
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
-                </select>
+                </select> */}
+                <select
+  className="pf-select"
+  value={form.category_id}
+ onChange={(e) => {
+
+    const categoryId = e.target.value;
+
+    set("category_id", categoryId);
+    set("subcategory_id", "");
+    set("brand", "");
+
+    fetchSubCategories(
+        selectedCompany,
+        categoryId
+    );
+
+    setBrands([]);
+
+}}
+>
+  <option value="">Select a category...</option>
+
+  {categories.map((c) => (
+    <option key={c.id} value={c.id}>
+      {c.name}
+    </option>
+  ))}
+</select>
                 <span className="pf-select-arrow">▾</span>
               </div>
             </div>
+
+            <div className="pf-field">
+
+  <label className="pf-label">
+    Sub Category
+  </label>
+
+  <div className="pf-select-wrap pf-input-wrap">
+
+    <span className="pf-input-icon">📂</span>
+
+    <select
+      className="pf-select"
+      value={form.subcategory_id}
+      // onChange={(e) => set("subcategory_id", e.target.value)}
+      onChange={(e) => {
+
+  set("subcategory_id", e.target.value);
+  set("brand", "");
+
+  fetchBrands(
+    selectedCompany,
+    form.category_id,
+    e.target.value
+  );
+
+}}
+    >
+
+      <option value="">
+        Select Sub Category
+      </option>
+
+      {subCategories.map((s) => (
+
+        <option
+          key={s.id}
+          value={s.id}
+        >
+          {s.name}
+        </option>
+
+      ))}
+
+    </select>
+
+    <span className="pf-select-arrow">▾</span>
+
+  </div>
+
+</div>
+{/* brand  */}
+
+            <div className="pf-field">
+
+  <label className="pf-label">
+    Brand
+  </label>
+
+  <div className="pf-input-wrap">
+
+    <span className="pf-input-icon">🏷️</span>
+
+    <select
+  className="pf-select"
+  value={form.brand}
+  onChange={(e) => set("brand", e.target.value)}
+>
+
+  <option value="">
+    Select Brand
+  </option>
+
+  {brands.map((b) => (
+
+    <option
+      key={b.id}
+      value={b.id}
+    >
+      {b.name}
+    </option>
+
+  ))}
+
+</select>
+
+<span className="pf-select-arrow">▾</span>
+
+  </div>
+
+</div>
 
             {/* ── Pricing & Stock ── */}
             <p className="pf-section" style={{marginTop:"1.25rem"}}>Pricing & Stock</p>

@@ -24,6 +24,9 @@ import EditCashier from "../pages/cashier/EditCashier";
 import CategoryForm from "../pages/category/CategoryForm";
 import CategoryList from "../pages/category/categoryList";
 import EditCategory from "../pages/category/EditCategory";
+import SubcategoryForm from "../pages/subcategory/Subcategoryform ";
+import SubcategoryList from "../pages/subcategory/Subcategorylist";
+import EditSubcategory from "../pages/subcategory/Editsubcategory";
 import Profile from "../pages/profile/profile";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import RegisterCompany from "../pages/auth/registercompany";
@@ -41,6 +44,9 @@ import EditAdmin from "../pages/Admin/EditAdmin";
 
 import CompanyRequest from "../pages/CompanyRequests/CompanyRequest";
 import ChangePassword from "../pages/Admin/ChangePassword";
+import BrandForm from "../pages/brand/BrandForm";
+import BrandList from "../pages/brand/BrandList";
+import EditBrand from "../pages/brand/EditBrand";
 
 export default function AppRoutes() {
   return (
@@ -106,6 +112,12 @@ export default function AppRoutes() {
             <Route path="/category/add" element={<CategoryForm />} />
           <Route path="/category" element={<CategoryList/>} />
           <Route path="/category/edit/:id" element={<EditCategory/>} />
+           <Route path="/subcategory/add" element={<SubcategoryForm />} />
+          <Route path="/subcategory" element={<SubcategoryList/>} />
+          <Route path="/subcategory/edit/:id" element={<EditSubcategory/>} />
+             <Route path="/brand/add" element={<BrandForm />} />
+          <Route path="/brand" element={<BrandList/>} />
+          <Route path="/brand/edit/:id" element={<EditBrand/>} />
 
 
 <Route path="/tax" element={<TaxList />} />

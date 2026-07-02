@@ -737,7 +737,7 @@ const [notifPos, setNotifPos] = useState({
       try {
         // const user = JSON.parse(localStorage.getItem("user"));
         const adminId = user.role === "cashier" ? user.admin_id : user.id;
-        const res = await api.get(`/company/get_companies_by_admin.php?admin_id=${adminId}`);
+        const res = await api.get(`/company/get_companies_by_admin.php?admin_id=${adminId}&role=${user.role}`);
         if (res.data.status) {
           setCompanies(res.data.data || []);
           /* Auto-select first company if none saved */
@@ -972,7 +972,7 @@ useEffect(()=>{
             }}
         >
 
-            <div
+            {/* <div
                 style={{
                     padding: 14,
                     cursor: "pointer"
@@ -980,7 +980,18 @@ useEffect(()=>{
                 onClick={() => navigate("/change-password")}
             >
                 🔒 Change Password
-            </div>
+            </div> */}
+            {(user.role === "admin" || user.role === "cashier") && (
+    <div
+        style={{
+            padding: 14,
+            cursor: "pointer"
+        }}
+        onClick={() => navigate("/change-password")}
+    >
+        🔒 Change Password
+    </div>
+)}
 
             <div
                 style={{
