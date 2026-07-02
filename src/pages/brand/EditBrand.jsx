@@ -22,16 +22,16 @@ function ToastPortal({ toasts, remove }) {
       display: "flex", flexDirection: "column", gap: 10, pointerEvents: "none"
     }}>
       {toasts.map(t => (
-        <div key={t.id} className={`esb-toast esb-toast-${t.type}`}>
-          <div className="esb-toast-icon">
+        <div key={t.id} className={`ebr-toast ebr-toast-${t.type}`}>
+          <div className="ebr-toast-icon">
             {t.type === "success" ? "✓" : t.type === "error" ? "✕" : "!"}
           </div>
-          <div className="esb-toast-content">
-            <p className="esb-toast-title">{t.title}</p>
-            {t.msg && <p className="esb-toast-msg">{t.msg}</p>}
+          <div className="ebr-toast-content">
+            <p className="ebr-toast-title">{t.title}</p>
+            {t.msg && <p className="ebr-toast-msg">{t.msg}</p>}
           </div>
-          <button className="esb-toast-x" style={{ pointerEvents: "auto" }} onClick={() => remove(t.id)}>✕</button>
-          <div className="esb-toast-progress" />
+          <button className="ebr-toast-x" style={{ pointerEvents: "auto" }} onClick={() => remove(t.id)}>✕</button>
+          <div className="ebr-toast-progress" />
         </div>
       ))}
     </div>
@@ -48,34 +48,43 @@ export default function EditBrand() {
   const [charCount, setCharCount] = useState(0);
 
   const [companyId, setCompanyId] = useState(null);
+
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [originalCategory, setOriginalCategory] = useState("");
 
+  const [subcategories, setSubcategories] = useState([]);
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [originalSubcategory, setOriginalSubcategory] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [subLoading, setSubLoading] = useState(false);
   const { toasts, show, remove } = useToast();
 
-  const fetchSubcategory = async () => {
+  const fetchBrand = async () => {
     setFetching(true);
     try {
-      const res = await api.get(`/subcategory/get_by_id.php?id=${id}`);
+      const res = await api.get(`/brand/get_by_id.php?id=${id}`);
       if (res.data.status) {
-        const s = res.data.data;
-        setName(s.name);
-        setOriginalName(s.name);
-        setCharCount(s.name.length);
-        setSelectedCategory(String(s.category_id));
-        setOriginalCategory(String(s.category_id));
-        setCompanyId(s.company_id);
+        const b = res.data.data;
+        setName(b.name);
+        setOriginalName(b.name);
+        setCharCount(b.name.length);
+        setSelectedCategory(String(b.category_id));
+        setOriginalCategory(String(b.category_id));
+        setSelectedSubcategory(String(b.subcategory_id));
+        setOriginalSubcategory(String(b.subcategory_id));
+        setCompanyId(b.company_id);
 
-        // load categories for this subcategory's company
-        loadCategories(s.company_id);
+        // load categories, then subcategories for this brand's category
+        loadCategories(b.company_id);
+        loadSubcategories(b.company_id, b.category_id);
       } else {
-        show("error", "Not found", "Subcategory could not be loaded.");
+        show("error", "Not found", "Brand could not be loaded.");
       }
     } catch {
-      show("error", "Server error", "Failed to fetch subcategory.");
+      show("error", "Server error", "Failed to fetch brand.");
     } finally {
       setFetching(false);
     }
@@ -94,7 +103,48 @@ export default function EditBrand() {
     }
   };
 
-  useEffect(() => { fetchSubcategory(); }, [id]);
+  const loadSubcategories = async (company_id, category_id) => {
+    setSubLoading(true);
+    try {
+      const res = await api.get(
+        `/subcategory/get_active_subcategory.php?company_id=${company_id}&category_id=${category_id}`
+      );
+      if (res.data.status) {
+        setSubcategories(res.data.data);
+      } else {
+        setSubcategories([]);
+      }
+    } catch (err) {
+      console.log(err);
+      setSubcategories([]);
+    } finally {
+      setSubLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchBrand(); }, [id]);
+
+  // when the user changes the category (after initial load), refresh subcategory list
+  const handleCategoryChange = (e) => {
+    const newCategory = e.target.value;
+    setSelectedCategory(newCategory);
+
+    if (!companyId) return;
+
+    if (newCategory) {
+      loadSubcategories(companyId, newCategory);
+    } else {
+      setSubcategories([]);
+    }
+
+    // if the category actually changed from what's loaded, reset subcategory
+    // unless it matches the original brand's category (keep original subcategory selected)
+    if (newCategory === originalCategory) {
+      setSelectedSubcategory(originalSubcategory);
+    } else {
+      setSelectedSubcategory("");
+    }
+  };
 
   const handleChange = (e) => {
     setName(e.target.value);
@@ -103,27 +153,36 @@ export default function EditBrand() {
 
   const handleUpdate = async () => {
     if (!name.trim()) {
-      show("warn", "Missing field", "Subcategory name cannot be empty.");
+      show("warn", "Missing field", "Brand name cannot be empty.");
       return;
     }
     if (!selectedCategory) {
       show("warn", "Missing field", "Please select a category.");
       return;
     }
-    if (name.trim() === originalName && selectedCategory === originalCategory) {
+    if (!selectedSubcategory) {
+      show("warn", "Missing field", "Please select a subcategory.");
+      return;
+    }
+    if (
+      name.trim() === originalName &&
+      selectedCategory === originalCategory &&
+      selectedSubcategory === originalSubcategory
+    ) {
       show("warn", "No changes", "You haven't changed anything.");
       return;
     }
     setLoading(true);
     try {
-      const res = await api.post("/subcategory/update.php", {
+      const res = await api.post("/brand/update.php", {
         id,
         name: name.trim(),
         category_id: Number(selectedCategory),
+        subcategory_id: Number(selectedSubcategory),
       });
       if (res.data.status) {
-        show("success", "Subcategory updated!", `"${name.trim()}" saved successfully.`);
-        setTimeout(() => navigate("/subcategory"), 2000);
+        show("success", "Brand updated!", `"${name.trim()}" saved successfully.`);
+        setTimeout(() => navigate("/brand"), 2000);
       } else {
         show("error", "Update failed", res.data.message || "Something went wrong.");
       }
@@ -134,14 +193,17 @@ export default function EditBrand() {
     }
   };
 
-  const isDirty = name.trim() !== originalName || selectedCategory !== originalCategory;
+  const isDirty =
+    name.trim() !== originalName ||
+    selectedCategory !== originalCategory ||
+    selectedSubcategory !== originalSubcategory;
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        .esb-page {
+        .ebr-page {
           font-family: 'Plus Jakarta Sans', sans-serif;
           min-height: 100vh;
           display: flex;
@@ -153,22 +215,22 @@ export default function EditBrand() {
           overflow: hidden;
         }
 
-        .esb-bg-ring {
+        .ebr-bg-ring {
           position: absolute;
           border-radius: 50%;
           pointer-events: none;
         }
-        .esb-bg-ring-1 {
+        .ebr-bg-ring-1 {
           width: 480px; height: 480px;
           border: 55px solid rgba(37,99,235,0.07);
           top: -170px; right: -140px;
         }
-        .esb-bg-ring-2 {
+        .ebr-bg-ring-2 {
           width: 300px; height: 300px;
           border: 38px solid rgba(99,102,241,0.06);
           bottom: -90px; left: -70px;
         }
-        .esb-bg-dot {
+        .ebr-bg-dot {
           position: absolute;
           width: 6px; height: 6px;
           border-radius: 50%;
@@ -176,7 +238,7 @@ export default function EditBrand() {
           pointer-events: none;
         }
 
-        .esb-card {
+        .ebr-card {
           position: relative;
           width: 100%;
           max-width: 480px;
@@ -188,31 +250,31 @@ export default function EditBrand() {
             0 20px 60px rgba(37,99,235,0.1),
             0 4px 16px rgba(0,0,0,0.04);
           overflow: hidden;
-          animation: esbSlideUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+          animation: ebrSlideUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
         }
-        @keyframes esbSlideUp {
+        @keyframes ebrSlideUp {
           from { opacity:0; transform:translateY(28px) scale(0.97); }
           to   { opacity:1; transform:translateY(0) scale(1); }
         }
 
-        .esb-stripe {
+        .ebr-stripe {
           height: 5px;
           background: linear-gradient(90deg, #1d4ed8, #6366f1, #3b82f6, #1d4ed8);
           background-size: 200% 100%;
-          animation: esbStripe 3s linear infinite;
+          animation: ebrStripe 3s linear infinite;
         }
-        @keyframes esbStripe {
+        @keyframes ebrStripe {
           0%   { background-position: 0% 0%; }
           100% { background-position: 200% 0%; }
         }
 
-        .esb-header {
+        .ebr-header {
           padding: 2rem 2rem 1.5rem;
           display: flex;
           align-items: flex-start;
           gap: 1rem;
         }
-        .esb-icon-box {
+        .ebr-icon-box {
           width: 52px; height: 52px;
           border-radius: 16px;
           background: linear-gradient(135deg, #1d4ed8, #3b82f6);
@@ -221,21 +283,21 @@ export default function EditBrand() {
           flex-shrink: 0;
           box-shadow: 0 6px 20px rgba(37,99,235,0.35);
         }
-        .esb-header-text h1 {
+        .ebr-header-text h1 {
           font-size: 20px;
           font-weight: 800;
           color: #0f172a;
           margin: 0 0 4px;
           letter-spacing: -0.4px;
         }
-        .esb-header-text p {
+        .ebr-header-text p {
           font-size: 13px;
           color: #94a3b8;
           margin: 0;
           font-weight: 400;
         }
 
-        .esb-id-badge {
+        .ebr-id-badge {
           display: inline-flex;
           align-items: center;
           gap: 5px;
@@ -249,34 +311,34 @@ export default function EditBrand() {
           margin-top: 6px;
         }
 
-        .esb-hr { height: 1px; background: #f1f5f9; margin: 0 2rem; }
+        .ebr-hr { height: 1px; background: #f1f5f9; margin: 0 2rem; }
 
-        .esb-body { padding: 1.75rem 2rem 2rem; }
+        .ebr-body { padding: 1.75rem 2rem 2rem; }
 
-        .esb-field { margin-bottom: 20px; }
+        .ebr-field { margin-bottom: 20px; }
 
-        .esb-label-row {
+        .ebr-label-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
           margin-bottom: 8px;
         }
-        .esb-label {
+        .ebr-label {
           font-size: 11.5px;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
           color: #64748b;
         }
-        .esb-char {
+        .ebr-char {
           font-size: 11px;
           color: #cbd5e1;
           font-weight: 500;
           transition: color 0.2s;
         }
-        .esb-char.active { color: #3b82f6; }
+        .ebr-char.active { color: #3b82f6; }
 
-        .esb-select, .esb-input {
+        .ebr-select, .ebr-input {
           width: 100%;
           padding: 14px 16px;
           border-radius: 14px;
@@ -290,30 +352,31 @@ export default function EditBrand() {
           box-sizing: border-box;
           transition: all 0.25s;
         }
-        .esb-select { cursor: pointer; }
-        .esb-input::placeholder { color: #c4cdd6; font-weight: 400; }
-        .esb-select:hover, .esb-input:hover { border-color: #bfdbfe; background: #f0f6ff; }
-        .esb-select:focus, .esb-input:focus {
+        .ebr-select { cursor: pointer; }
+        .ebr-select:disabled { cursor: not-allowed; opacity: 0.6; }
+        .ebr-input::placeholder { color: #c4cdd6; font-weight: 400; }
+        .ebr-select:hover, .ebr-input:hover { border-color: #bfdbfe; background: #f0f6ff; }
+        .ebr-select:focus, .ebr-input:focus {
           border-color: #3b82f6;
           background: #fff;
           box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
         }
 
         /* Skeleton loader */
-        .esb-skeleton {
+        .ebr-skeleton {
           height: 50px;
           border-radius: 14px;
           background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
           background-size: 200% 100%;
-          animation: esbShimmer 1.4s infinite;
+          animation: ebrShimmer 1.4s infinite;
         }
-        @keyframes esbShimmer {
+        @keyframes ebrShimmer {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
 
         /* Changed indicator */
-        .esb-changed {
+        .ebr-changed {
           display: flex;
           align-items: center;
           gap: 6px;
@@ -325,18 +388,18 @@ export default function EditBrand() {
           background: #fffbeb;
           border: 1px solid #fde68a;
           border-radius: 10px;
-          animation: esbFadeIn 0.3s ease;
+          animation: ebrFadeIn 0.3s ease;
         }
-        .esb-unchanged {
+        .ebr-unchanged {
           height: 1.5rem;
           margin-bottom: 1.5rem;
         }
-        @keyframes esbFadeIn {
+        @keyframes ebrFadeIn {
           from { opacity:0; transform: translateY(-4px); }
           to   { opacity:1; transform: translateY(0); }
         }
 
-        .esb-btn {
+        .ebr-btn {
           width: 100%;
           padding: 15px;
           border-radius: 14px;
@@ -354,20 +417,20 @@ export default function EditBrand() {
           transition: all 0.25s;
           opacity: 1;
         }
-        .esb-btn::after {
+        .ebr-btn::after {
           content: '';
           position: absolute; inset: 0;
           background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 60%);
           pointer-events: none;
         }
-        .esb-btn:hover:not(:disabled) {
+        .ebr-btn:hover:not(:disabled) {
           transform: translateY(-2px);
           box-shadow: 0 10px 28px rgba(37,99,235,0.45);
         }
-        .esb-btn:active:not(:disabled) { transform: translateY(0); }
-        .esb-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        .ebr-btn:active:not(:disabled) { transform: translateY(0); }
+        .ebr-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
-        .esb-btn-cancel {
+        .ebr-btn-cancel {
           width: 100%;
           margin-top: 10px;
           padding: 12px;
@@ -381,9 +444,9 @@ export default function EditBrand() {
           cursor: pointer;
           transition: all 0.2s;
         }
-        .esb-btn-cancel:hover { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
+        .ebr-btn-cancel:hover { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
 
-        .esb-spinner {
+        .ebr-spinner {
           width: 17px; height: 17px;
           border: 2.5px solid rgba(255,255,255,0.3);
           border-top-color: #fff;
@@ -393,7 +456,7 @@ export default function EditBrand() {
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ── Toast ── */
-        .esb-toast {
+        .ebr-toast {
           pointer-events: auto;
           display: flex;
           align-items: center;
@@ -405,93 +468,93 @@ export default function EditBrand() {
           position: relative;
           overflow: hidden;
           box-shadow: 0 8px 30px rgba(0,0,0,0.13);
-          animation: esbToastIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+          animation: ebrToastIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
           font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        @keyframes esbToastIn {
+        @keyframes ebrToastIn {
           from { opacity:0; transform:translateX(60px) scale(0.9); }
           to   { opacity:1; transform:translateX(0) scale(1); }
         }
-        .esb-toast-success { background:#f0fdf4; border:1px solid #bbf7d0; }
-        .esb-toast-error   { background:#fff1f2; border:1px solid #fecdd3; }
-        .esb-toast-warn    { background:#fffbeb; border:1px solid #fde68a; }
-        .esb-toast-icon {
+        .ebr-toast-success { background:#f0fdf4; border:1px solid #bbf7d0; }
+        .ebr-toast-error   { background:#fff1f2; border:1px solid #fecdd3; }
+        .ebr-toast-warn    { background:#fffbeb; border:1px solid #fde68a; }
+        .ebr-toast-icon {
           width:32px; height:32px; border-radius:10px;
           display:flex; align-items:center; justify-content:center;
           font-size:14px; font-weight:800; flex-shrink:0;
         }
-        .esb-toast-success .esb-toast-icon { background:#dcfce7; color:#16a34a; }
-        .esb-toast-error   .esb-toast-icon { background:#ffe4e6; color:#e11d48; }
-        .esb-toast-warn    .esb-toast-icon { background:#fef9c3; color:#b45309; }
-        .esb-toast-content { flex:1; }
-        .esb-toast-title { font-size:13px; font-weight:700; margin:0 0 2px; }
-        .esb-toast-success .esb-toast-title { color:#15803d; }
-        .esb-toast-error   .esb-toast-title { color:#be123c; }
-        .esb-toast-warn    .esb-toast-title { color:#92400e; }
-        .esb-toast-msg { font-size:12px; margin:0; font-weight:400; }
-        .esb-toast-success .esb-toast-msg { color:#16a34a; }
-        .esb-toast-error   .esb-toast-msg { color:#e11d48; }
-        .esb-toast-warn    .esb-toast-msg { color:#b45309; }
-        .esb-toast-x {
+        .ebr-toast-success .ebr-toast-icon { background:#dcfce7; color:#16a34a; }
+        .ebr-toast-error   .ebr-toast-icon { background:#ffe4e6; color:#e11d48; }
+        .ebr-toast-warn    .ebr-toast-icon { background:#fef9c3; color:#b45309; }
+        .ebr-toast-content { flex:1; }
+        .ebr-toast-title { font-size:13px; font-weight:700; margin:0 0 2px; }
+        .ebr-toast-success .ebr-toast-title { color:#15803d; }
+        .ebr-toast-error   .ebr-toast-title { color:#be123c; }
+        .ebr-toast-warn    .ebr-toast-title { color:#92400e; }
+        .ebr-toast-msg { font-size:12px; margin:0; font-weight:400; }
+        .ebr-toast-success .ebr-toast-msg { color:#16a34a; }
+        .ebr-toast-error   .ebr-toast-msg { color:#e11d48; }
+        .ebr-toast-warn    .ebr-toast-msg { color:#b45309; }
+        .ebr-toast-x {
           background:none; border:none; cursor:pointer;
           font-size:13px; opacity:0.4; transition:opacity 0.2s;
           flex-shrink:0; padding:2px;
         }
-        .esb-toast-x:hover { opacity:0.9; }
-        .esb-toast-progress {
+        .ebr-toast-x:hover { opacity:0.9; }
+        .ebr-toast-progress {
           position:absolute; bottom:0; left:0;
           height:3px; border-radius:0 0 16px 16px;
-          animation:esbShrink 3.8s linear forwards;
+          animation:ebrShrink 3.8s linear forwards;
         }
-        .esb-toast-success .esb-toast-progress { background:#4ade80; }
-        .esb-toast-error   .esb-toast-progress { background:#fb7185; }
-        .esb-toast-warn    .esb-toast-progress { background:#fbbf24; }
-        @keyframes esbShrink {
+        .ebr-toast-success .ebr-toast-progress { background:#4ade80; }
+        .ebr-toast-error   .ebr-toast-progress { background:#fb7185; }
+        .ebr-toast-warn    .ebr-toast-progress { background:#fbbf24; }
+        @keyframes ebrShrink {
           from { width:100%; } to { width:0%; }
         }
       `}</style>
 
       <ToastPortal toasts={toasts} remove={remove} />
 
-      <div className="esb-page">
-        <div className="esb-bg-ring esb-bg-ring-1" />
-        <div className="esb-bg-ring esb-bg-ring-2" />
+      <div className="ebr-page">
+        <div className="ebr-bg-ring ebr-bg-ring-1" />
+        <div className="ebr-bg-ring ebr-bg-ring-2" />
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="esb-bg-dot" style={{
+          <div key={i} className="ebr-bg-dot" style={{
             top:  `${[15,25,70,80,40,60,10,90][i]}%`,
             left: `${[10,85,5,90,50,20,70,45][i]}%`,
           }} />
         ))}
 
-        <div className="esb-card">
-          <div className="esb-stripe" />
+        <div className="ebr-card">
+          <div className="ebr-stripe" />
 
-          <div className="esb-header">
-            <div className="esb-icon-box">✏️</div>
-            <div className="esb-header-text">
-              <h1>Edit Subcategory</h1>
-              <p>Update the subcategory details below</p>
-              <div className="esb-id-badge">🔖 Subcategory ID: #{id}</div>
+          <div className="ebr-header">
+            <div className="ebr-icon-box">✏️</div>
+            <div className="ebr-header-text">
+              <h1>Edit Brand</h1>
+              <p>Update the brand details below</p>
+              <div className="ebr-id-badge">🔖 Brand ID: #{id}</div>
             </div>
           </div>
 
-          <div className="esb-hr" />
+          <div className="ebr-hr" />
 
-          <div className="esb-body">
+          <div className="ebr-body">
 
             {/* Category */}
-            <div className="esb-field">
-              <div className="esb-label-row">
-                <span className="esb-label">Category</span>
+            <div className="ebr-field">
+              <div className="ebr-label-row">
+                <span className="ebr-label">Category</span>
               </div>
 
               {fetching ? (
-                <div className="esb-skeleton" />
+                <div className="ebr-skeleton" />
               ) : (
                 <select
-                  className="esb-select"
+                  className="ebr-select"
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={handleCategoryChange}
                 >
                   <option value="">Select Category</option>
                   {categories.map((cat) => (
@@ -503,20 +566,47 @@ export default function EditBrand() {
               )}
             </div>
 
-            {/* Name */}
-            <div className="esb-field">
-              <div className="esb-label-row">
-                <span className="esb-label">Subcategory Name</span>
-                <span className={`esb-char ${charCount > 0 ? "active" : ""}`}>{charCount}/50</span>
+            {/* Subcategory */}
+            <div className="ebr-field">
+              <div className="ebr-label-row">
+                <span className="ebr-label">Subcategory</span>
               </div>
 
               {fetching ? (
-                <div className="esb-skeleton" />
+                <div className="ebr-skeleton" />
+              ) : (
+                <select
+                  className="ebr-select"
+                  value={selectedSubcategory}
+                  onChange={(e) => setSelectedSubcategory(e.target.value)}
+                  disabled={!selectedCategory || subLoading}
+                >
+                  <option value="">
+                    {subLoading ? "Loading…" : "Select Subcategory"}
+                  </option>
+                  {subcategories.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Name */}
+            <div className="ebr-field">
+              <div className="ebr-label-row">
+                <span className="ebr-label">Brand Name</span>
+                <span className={`ebr-char ${charCount > 0 ? "active" : ""}`}>{charCount}/50</span>
+              </div>
+
+              {fetching ? (
+                <div className="ebr-skeleton" />
               ) : (
                 <input
                   type="text"
-                  className="esb-input"
-                  placeholder="e.g. Smartphones, Soft Drinks…"
+                  className="ebr-input"
+                  placeholder="e.g. Samsung, Coca-Cola…"
                   value={name}
                   maxLength={50}
                   onChange={handleChange}
@@ -526,19 +616,19 @@ export default function EditBrand() {
             </div>
 
             {isDirty
-              ? <div className="esb-changed">⚡ You have unsaved changes</div>
-              : <div className="esb-unchanged" />
+              ? <div className="ebr-changed">⚡ You have unsaved changes</div>
+              : <div className="ebr-unchanged" />
             }
 
-            <button className="esb-btn" onClick={handleUpdate} disabled={loading || fetching}>
+            <button className="ebr-btn" onClick={handleUpdate} disabled={loading || fetching}>
               {loading
-                ? <><div className="esb-spinner" /> Updating…</>
-                : <>💾 Update Subcategory</>
+                ? <><div className="ebr-spinner" /> Updating…</>
+                : <>💾 Update Brand</>
               }
             </button>
 
-            <button className="esb-btn-cancel" onClick={() => navigate("/subcategory")}>
-              ← Back to Subcategories
+            <button className="ebr-btn-cancel" onClick={() => navigate("/brand")}>
+              ← Back to Brands
             </button>
           </div>
         </div>

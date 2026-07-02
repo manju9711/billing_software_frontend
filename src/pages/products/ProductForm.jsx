@@ -702,7 +702,7 @@ const loadCompanies = async(admin_id) => {
 
 };
   const [form, setForm] = useState({
-    name: "", product_code: "", price: "", brand: "",
+    name: "", product_code: "", price: "", brand_id: "",
   subcategory_id: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
   });
 
@@ -926,7 +926,7 @@ const handleCompanyChange = (e) => {
     return;
 
 }
-if (!form.brand) {
+if (!form.brand_id) {
 
   show(
     "warn",
@@ -967,7 +967,7 @@ if (
         product_code: form.product_code,
         category_id: form.category_id,
         subcategory_id: form.subcategory_id,
-         brand: form.brand,
+         brand_id: form.brand_id,
         company_id: getCompanyId(),
         price: form.price,
         stock: form.stock,
@@ -1378,7 +1378,7 @@ if (
 
     set("category_id", categoryId);
     set("subcategory_id", "");
-    set("brand", "");
+    set("brand_id", "");
 
     fetchSubCategories(
         selectedCompany,
@@ -1418,7 +1418,7 @@ if (
       onChange={(e) => {
 
   set("subcategory_id", e.target.value);
-  set("brand", "");
+  set("brand_id", "");
 
   fetchBrands(
     selectedCompany,
@@ -1465,8 +1465,8 @@ if (
 
     <select
   className="pf-select"
-  value={form.brand}
-  onChange={(e) => set("brand", e.target.value)}
+  value={form.brand_id}
+  onChange={(e) => set("brand_id", e.target.value)}
 >
 
   <option value="">
