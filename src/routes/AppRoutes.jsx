@@ -38,7 +38,9 @@ import PendingCashierRequests from "../pages/CashierRequests/PendingCashierReque
 import AdminForm from "../pages/Admin/AdminForm";
 import AdminList from "../pages/Admin/AdminList";
 import EditAdmin from "../pages/Admin/EditAdmin";
+
 import CompanyRequest from "../pages/CompanyRequests/CompanyRequest";
+import ChangePassword from "../pages/Admin/ChangePassword";
 
 export default function AppRoutes() {
   return (
@@ -114,6 +116,7 @@ export default function AppRoutes() {
       <Route path="/admin/add" element={<AdminForm />} />
       <Route path="/admin" element={<AdminList />} />
       <Route path="/admin/edit/:id" element={<EditAdmin />} />
+      <Route path="/change-password" element={<ChangePassword/>}/>
       <Route path="/company-requests" element={<CompanyRequest />} />
         </Route>
       </Routes>
