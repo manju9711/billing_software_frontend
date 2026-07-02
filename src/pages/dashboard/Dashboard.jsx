@@ -715,6 +715,7 @@ const [showProfile, setShowProfile] = useState(false);
   const [creditList, setCreditList]     = useState([]);
   const [loading, setLoading]           = useState(false);
   const [activeBar, setActiveBar]       = useState(null);
+  const [unsoldProducts,setUnsoldProducts]=useState([]);
 
 
   const [showNotif,   setShowNotif]   = useState(false);
@@ -790,6 +791,38 @@ const [notifPos, setNotifPos] = useState({
     } catch (e) { console.error(e); }
   };
 
+  const fetchUnsoldProducts = async () => {
+
+    try{
+
+        const res = await api.get(
+            `/dashboard/get_unsold_products_notification.php?company_id=${selectedCompany}`
+        );
+
+        if(res.data.status){
+
+            setUnsoldProducts(res.data.data);
+
+        }
+
+    }catch(err){
+
+        console.log(err);
+
+    }
+
+};
+
+useEffect(()=>{
+
+    if(selectedCompany){
+
+        fetchUnsoldProducts();
+
+    }
+
+},[selectedCompany]);
+
 const fetchCreditDashboard = async (companyId) => {
   try {
     const res = await api.get(`/dashboard/get_dashboard.php?company_id=${companyId}`);
@@ -805,7 +838,7 @@ const fetchCreditDashboard = async (companyId) => {
 
 const fetchNotifications = async () => {
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    // const user = JSON.parse(localStorage.getItem("user"));
 
     const adminId =
         user.role === "cashier"
@@ -988,7 +1021,8 @@ useEffect(()=>{
       }}
     >
       <Bell size={18} color="#4338ca"/>
-      {overdueList.length > 0 && (
+      {/* {overdueList.length > 0 && ( */}
+      {(overdueList.length + unsoldProducts.length) > 0 && (
         <span style={{
           position:"absolute", top:-6, right:-6,
           background:"#dc2626", color:"#fff",
@@ -996,7 +1030,8 @@ useEffect(()=>{
           display:"flex", alignItems:"center",
           justifyContent:"center", fontSize:11, fontWeight:800,
         }}>
-          {overdueList.length}
+          {/* {overdueList.length} */}
+          {overdueList.length + unsoldProducts.length}
         </span>
       )}
     </button>
@@ -1022,17 +1057,41 @@ right:0,
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <Bell size={15} color="#fff"/>
             <span style={{ color:"#fff", fontWeight:800, fontSize:14 }}>
-              Overdue Alerts
+              Notifications
             </span>
           </div>
-          <span style={{
+          {/* <span style={{
             background:"#dc2626", color:"#fff",
             borderRadius:20, padding:"2px 10px",
             fontSize:11, fontWeight:800,
           }}>
             {overdueList.length} overdue
-          </span>
+          </span> */}
+          <span
+  style={{
+    background:"#dc2626",
+    color:"#fff",
+    borderRadius:20,
+    padding:"2px 10px",
+    fontSize:11,
+    fontWeight:800
+  }}
+>
+  {overdueList.length + unsoldProducts.length} Alerts
+</span>
         </div>
+         <div
+    style={{
+        background:"#fef2f2",
+        padding:"10px 15px",
+        fontWeight:700,
+        color:"#dc2626",
+        borderTop:"1px solid #fecaca",
+        borderBottom:"1px solid #fecaca"
+    }}
+    >
+        💰 Overdue Customers
+    </div>
 
         {/* List */}
         <div style={{ maxHeight:320, overflowY:"auto" }}>
@@ -1071,8 +1130,7 @@ right:0,
           ))}
         </div>
 
-        {/* Footer */}
-        {overdueList.length > 0 && (
+         {(overdueList.length + unsoldProducts.length) > 0 && (
           <div style={{
             padding:"12px 18px", borderTop:"1px solid #f1f5f9",
             background:"#fafafa", textAlign:"center",
@@ -1098,6 +1156,97 @@ onClick={() => {
             </span>
           </div>
         )}
+
+        {unsoldProducts.length>0 && (
+
+<div
+style={{
+background:"#fff7ed",
+padding:"10px 15px",
+fontWeight:700,
+color:"#c2410c",
+borderTop:"1px solid #fde68a",
+borderBottom:"1px solid #fde68a"
+}}
+>
+
+📦 Unsold Products
+
+</div>
+
+)}
+
+{unsoldProducts.map((p,i)=>(
+
+<div
+key={i}
+style={{
+padding:"12px 18px",
+borderBottom:"1px solid #f3f4f6"
+}}
+>
+
+<div
+style={{
+fontWeight:700,
+color:"#1e1b4b"
+}}
+>
+
+📦 {p.product_name}
+
+</div>
+
+<div
+style={{
+fontSize:12,
+color:"#dc2626",
+marginTop:4
+}}
+>
+
+{
+p.last_sale=="Never Billed"
+?
+"Never billed"
+:
+`No billing for ${p.days} days`
+}
+
+</div>
+
+</div>
+
+))}
+
+        {/* Footer */}
+        {/* {overdueList.length > 0 && ( */}
+        {/* {(overdueList.length + unsoldProducts.length) > 0 && (
+          <div style={{
+            padding:"12px 18px", borderTop:"1px solid #f1f5f9",
+            background:"#fafafa", textAlign:"center",
+          }}>
+            <span style={{ fontSize:12, color:"#6366f1", fontWeight:700, cursor:"pointer" }}
+onClick={() => {
+
+    if (bellRef.current) {
+
+        const rect = bellRef.current.getBoundingClientRect();
+
+        setNotifPos({
+            top: rect.bottom + 10,
+            left: rect.right - 340,
+        });
+
+    }
+
+    setShowNotif(v => !v);
+
+}}            >
+              Total Overdue: ₹{overdueList.reduce((s,c) => s + Number(c.outstanding), 0).toLocaleString()}
+            </span>
+          </div>
+        )} */}
       </div>
     )}
   </div>
