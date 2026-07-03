@@ -38,13 +38,13 @@ export default function MainLayout() {
     // ADMIN ONLY
     ...(role === "admin"
       ? [
-            { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={20} /> },
+          { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={20} /> },
           { name: "Company", path: "/company", icon: <Building2 size={20} /> },
           { name: "Category", path: "/category", icon: <Package size={20} /> },
           { name: "Subcategory", path: "/subcategory", icon: <Package size={20} /> },
-           { name: "Brand", path: "/brand", icon: <Package size={20} /> },
+          { name: "Brand", path: "/brand", icon: <Package size={20} /> },
+          { name: "supplier", path: "/supplier", icon: <Package size={20} /> },
           { name: "Products", path: "/products", icon: <Package size={20} /> },
-          // { name: "Billing", path: "/billing", icon: <ReceiptText size={20} /> },
           { name: "Reports", path: "/reports", icon: <BarChart3 size={20} /> },
           { name: "Cashiers", path: "/cashier", icon: <Building2 size={20} /> },
           // { name: "Profile", path: "/profile", icon: <Settings size={20} /> },

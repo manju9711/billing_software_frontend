@@ -47,10 +47,14 @@ import ChangePassword from "../pages/Admin/ChangePassword";
 import BrandForm from "../pages/brand/BrandForm";
 import BrandList from "../pages/brand/BrandList";
 import EditBrand from "../pages/brand/EditBrand";
+import SupplierForm from "../pages/supplier/SupplierForm";
+import SupplierList from "../pages/supplier/SupplierList";
+import EditSupplier from "../pages/supplier/EditSupplier";
+import SupplierAddProductForm from "../pages/supplier/SupplierAddProductForm";
 
 export default function AppRoutes() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/bill">
       <Routes>
 
           {/* 🔓 Public */}
@@ -118,6 +122,10 @@ export default function AppRoutes() {
              <Route path="/brand/add" element={<BrandForm />} />
           <Route path="/brand" element={<BrandList/>} />
           <Route path="/brand/edit/:id" element={<EditBrand/>} />
+            <Route path="/supplier/add" element={<SupplierForm />} />
+          <Route path="/supplier" element={<SupplierList/>} />
+          <Route path="/supplier/edit/:id" element={<EditSupplier/>} />
+          <Route path="/supplier/:supplierId/add-product" element={<SupplierAddProductForm />} />
 
 
 <Route path="/tax" element={<TaxList />} />
