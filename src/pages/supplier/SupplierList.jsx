@@ -93,11 +93,13 @@ export default function SupplierList() {
 
   // Navigate to the "add product" form for a specific supplier,
   // passing along the supplier's name so the form can show it in the header.
-  const goToAddProduct = (supplier) => {
-    navigate(`/supplier/${supplier.id}/add-product`, {
-      state: { supplierName: supplier.supplier_name },
-    });
-  };
+ const goToProductList = (supplier) => {
+  navigate(`/supplier/${supplier.id}/products`, {
+    state: { supplierName: supplier.supplier_name },
+  });
+};
+
+  
 
   const filtered = suppliers.filter((s) => {
     const q = search.toLowerCase();
@@ -308,7 +310,7 @@ export default function SupplierList() {
                       <td>
                         <button
                           className="sl-name-btn"
-                          onClick={() => goToAddProduct(s)}
+                          onClick={() => goToProductList(s)}
                           title="Add a product for this supplier"
                         >
                           {s.supplier_name}

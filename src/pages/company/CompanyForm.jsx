@@ -243,10 +243,13 @@ export default function CompanyForm() {
     if (!form.name.trim())           e.name         = "Company name is required";
     if (!form.code.trim())           e.code         = "Company code is required";
     if (!form.address.trim())        e.address      = "Address is required";
-    if (form.gst_type === "with_gst" && !form.gstin.trim())
-                                     e.gstin        = "GSTIN is required for GST registered company";
-    if (form.gst_type === "with_gst" && form.gstin && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(form.gstin))
-                                     e.gstin        = "Enter a valid GSTIN (e.g. 33ABCDE1234F1Z5)";
+    // if (form.gst_type === "with_gst" && !form.gstin.trim())
+    //                                  e.gstin        = "GSTIN is required for GST registered company";
+     if (form.gst_type === "with_gst" && form.gstin && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(form.gstin))
+    //                                  e.gstin        = "Enter a valid GSTIN (e.g. 33ABCDE1234F1Z5)";
+    // GSTIN is optional now — only validate format if the user actually typed something
+if (form.gstin.trim() && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(form.gstin))
+                                 e.gstin        = "Enter a valid GSTIN (e.g. 33ABCDE1234F1Z5)";
     if (!form.phone)                 e.phone        = "Phone number is required";
     else if (form.phone.length !== 10) e.phone      = "Phone must be exactly 10 digits";
    
@@ -419,9 +422,10 @@ export default function CompanyForm() {
           </div>
 
           {form.gst_type === "with_gst" && (
-            <Field label="GSTIN *" error={errors.gstin}>
+            <Field label="GSTIN (Optional)" error={errors.gstin}>
               <input className="rc-input" placeholder="e.g. 33ABCDE1234F1Z5"
                 value={form.gstin}
+                 maxLength={15}
                 onChange={e => set("gstin", e.target.value.toUpperCase())}
                 style={errors.gstin ? { borderColor:"#fca5a5", background:"#fff5f5" } : {}}
               />

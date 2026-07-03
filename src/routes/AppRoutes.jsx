@@ -50,7 +50,10 @@ import EditBrand from "../pages/brand/EditBrand";
 import SupplierForm from "../pages/supplier/SupplierForm";
 import SupplierList from "../pages/supplier/SupplierList";
 import EditSupplier from "../pages/supplier/EditSupplier";
-import SupplierAddProductForm from "../pages/supplier/SupplierAddProductForm";
+import SupplierAddProductForm from "../pages/SupplierProduct/SupplierAddProductForm";
+import SupplierProductList from "../pages/SupplierProduct/SupplierProductList";
+import SupplierEditProduct from "../pages/SupplierProduct/SupplierEditProduct";
+
 
 export default function AppRoutes() {
   return (
@@ -126,6 +129,8 @@ export default function AppRoutes() {
           <Route path="/supplier" element={<SupplierList/>} />
           <Route path="/supplier/edit/:id" element={<EditSupplier/>} />
           <Route path="/supplier/:supplierId/add-product" element={<SupplierAddProductForm />} />
+            <Route path="/supplier/:supplierId/products" element={<SupplierProductList/>} />
+          <Route path="/supplier/:supplierId/products/edit/:id" element={<SupplierEditProduct/>} />
 
 
 <Route path="/tax" element={<TaxList />} />
