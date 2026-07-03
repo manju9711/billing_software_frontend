@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import api from "../../services/api";
 import Barcode from "react-barcode";
-import { Pencil, ArrowLeft } from "lucide-react";
+import { Pencil, ArrowLeft, Plus } from "lucide-react";
 
 export default function SupplierProductList() {
   const navigate = useNavigate();
@@ -62,6 +62,7 @@ export default function SupplierProductList() {
       .pl-back-btn{width:38px;height:38px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
       .pl-header-left h1{font-size:22px;font-weight:800;margin:0;color:#0f172a;}
       .pl-header-left p{font-size:13px;color:#94a3b8;margin-top:4px;}
+      .pl-add-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;border:none;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,0.35);}
       .pl-toolbar{display:flex;gap:12px;margin-bottom:1.25rem;flex-wrap:wrap;}
       .pl-search{flex:1;min-width:220px;padding:12px 14px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:14px;}
       .pl-card{background:#fff;border-radius:20px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 4px 24px rgba(37,99,235,0.08);}
@@ -87,7 +88,7 @@ export default function SupplierProductList() {
       `}</style>
 
       <div className="pl-page">
-        <div className="pl-header">
+       <div className="pl-header">
           <div className="pl-header-left">
             <button className="pl-back-btn" onClick={() => navigate("/suppliers")}>
               <ArrowLeft size={16} />
@@ -97,6 +98,17 @@ export default function SupplierProductList() {
               <p>Products added by this supplier</p>
             </div>
           </div>
+
+          <button
+            className="pl-add-btn"
+            onClick={() =>
+              navigate(`/supplier/${supplierId}/add-product`, {
+                state: { supplierName },
+              })
+            }
+          >
+            <Plus size={16} /> Add Product
+          </button>
         </div>
 
         <div className="pl-toolbar">

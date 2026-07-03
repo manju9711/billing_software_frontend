@@ -390,7 +390,14 @@ const res = await api.post(
           box-shadow: 0 4px 24px rgba(37,99,235,0.08);
           overflow: hidden;
         }
-
+.cl-table-wrap {
+  overflow-x: auto;
+}
+.cl-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
         /* ── Table header stripe ── */
         .cl-table-header {
           background: linear-gradient(135deg, #1e40af, #2563eb);
@@ -641,6 +648,7 @@ const res = await api.post(
 
         {/* Table card */}
         <div className="cl-card">
+           <div className="cl-table-wrap">
           <table className="cl-table">
             <thead  className="bg-blue-600">
               <tr>
@@ -749,7 +757,7 @@ const res = await api.post(
               )}
             </tbody>
           </table>
-
+</div>
           {/* Pagination */}
           {filtered.length > ITEMS_PER_PAGE && (
             <div className="cl-pagination">
@@ -797,8 +805,8 @@ const res = await api.post(
               </div>
             </div>
           )}
-        </div>
-
+        
+</div>
       </div>
     </>
   );
