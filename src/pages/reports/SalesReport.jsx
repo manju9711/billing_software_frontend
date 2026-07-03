@@ -834,6 +834,8 @@
 //   );
 // }
 
+
+//brand wise report
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -907,6 +909,15 @@ const methodBadge = (m) => {
   return map[m?.toLowerCase()] || { bg:"#fee2e2", color:"#dc2626" };
 };
 
+// small helper to display just the date part of created_at nicely
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  const datePart = dateStr.split(" ")[0]; // "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DD"
+  const d = new Date(datePart);
+  if (isNaN(d.getTime())) return datePart;
+  return d.toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
+};
+
 /* ─── Summary Card ──────────────────────────────────── */
 function SummaryCard({ label, value, color, icon }) {
   return (
@@ -940,7 +951,6 @@ export default function Reports() {
 
   /* ── state ── */
   const [companies,     setCompanies]     = useState([]);
-  const [selectedComp,  setSelectedComp]  = useState("all"); // "all" or company id string
   const [invoices,      setInvoices]      = useState([]);
   const [summary,       setSummary]       = useState(null);
   const [loading,       setLoading]       = useState(false);
@@ -948,7 +958,8 @@ export default function Reports() {
   const [currentPage,   setCurrentPage]   = useState(1);
   const [showFilter,    setShowFilter]    = useState(false);
 
-  /* filter fields */
+  /* filter fields (invoice filter — company/brand removed, see Product
+     Catalog Report card below for the company/brand selectors) */
   const [fromDate,       setFromDate]       = useState("");
   const [toDate,         setToDate]         = useState("");
   const [paymentMethod,  setPaymentMethod]  = useState("all");
@@ -970,28 +981,21 @@ export default function Reports() {
       .catch(console.error);
   }, [adminId]);
 
-  /* ── fetch invoices ── */
+  /* ── fetch invoices (always across all companies for this admin —
+     company/brand filter has been moved to the Product Catalog Report) ── */
   const fetchFiltered = useCallback(async (overrides = {}) => {
-    const compId = overrides.selectedComp ?? selectedComp;
-
-    // Need at least one company to query
     if (!adminId) return;
 
     setLoading(true);
     setCheckedIds(new Set());
 
     try {
-      // If "all" → fetch for every company under this admin in parallel
-      // then merge results
       let allRows = [];
       let mergedSummary = {
         total_invoices: 0, total_amount: 0, total_paid: 0, total_pending: 0,
       };
 
-      const companyIds =
-        compId === "all"
-          ? companies.map(c => c.id)
-          : [parseInt(compId)];
+      const companyIds = companies.map(c => c.id);
 
       if (companyIds.length === 0) {
         setInvoices([]);
@@ -1008,6 +1012,7 @@ export default function Reports() {
           payment_method: overrides.paymentMethod  ?? paymentMethod,
           payment_status: overrides.paymentStatus  ?? paymentStatus,
           customer_name:  overrides.customerFilter ?? customerFilter,
+          brand_id: 0,
         })
       );
 
@@ -1034,7 +1039,7 @@ export default function Reports() {
     } finally {
       setLoading(false);
     }
-  }, [adminId, companies, selectedComp, fromDate, toDate, paymentMethod, paymentStatus, customerFilter]);
+  }, [adminId, companies, fromDate, toDate, paymentMethod, paymentStatus, customerFilter]);
 
   // Initial load after companies are fetched
   useEffect(() => {
@@ -1060,7 +1065,6 @@ export default function Reports() {
     paymentMethod !== "all",
     paymentStatus !== "all",
     customerFilter,
-    selectedComp !== "all",
   ].filter(Boolean).length;
 
   /* ── apply / reset ── */
@@ -1069,11 +1073,11 @@ export default function Reports() {
   const resetFilter = () => {
     setFromDate(""); setToDate("");
     setPaymentMethod("all"); setPaymentStatus("all");
-    setCustomerFilter(""); setSelectedComp("all");
+    setCustomerFilter("");
     fetchFiltered({
       fromDate:"", toDate:"",
       paymentMethod:"all", paymentStatus:"all",
-      customerFilter:"", selectedComp:"all",
+      customerFilter:"",
     });
   };
 
@@ -1109,7 +1113,7 @@ export default function Reports() {
 
   const selectedRows = filtered.filter(inv => checkedIds.has(inv.invoice_no));
 
-  /* ── Excel ── */
+  /* ── Excel (Invoice Report) ── */
   const buildExcelData = (rows) =>
     rows.map((inv) => ({
       "GST Number":           inv.gstin || "-",
@@ -1141,7 +1145,7 @@ export default function Reports() {
     );
   };
 
-  /* ── PDF ── */
+  /* ── PDF (Invoice Report) ── */
   const downloadPDF = (rows, label) => {
     if (!rows.length) { alert("No data to export"); return; }
     const doc = new jsPDF({ orientation:"landscape" });
@@ -1182,13 +1186,110 @@ export default function Reports() {
     doc.save(`invoice_report_${label}.pdf`);
   };
 
-  /* ── filter label ── */
+  /* ═══════════════════════════════════════════════════════════════════
+     PRODUCT CATALOG REPORT — independent of invoices.
+     Pulls straight from the product master list (/product/get.php),
+     so it includes every product you've added — sold or not — with
+     full catalog details. Has its OWN Company / Brand selectors
+     (moved here from the invoice Filter panel).
+     "All Companies" + "All Brands" → every product for the admin.
+     A company selected → that company's products (brand list loads).
+     A brand selected → only that brand's products.
+     ═══════════════════════════════════════════════════════════════════ */
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogComp,    setCatalogComp]    = useState("all"); // "all" or company id
+  const [catalogBrands,  setCatalogBrands]  = useState([]);
+  const [catalogBrand,   setCatalogBrand]   = useState("all"); // "all" or brand id
+
+  /* fetch brands whenever a specific company is selected for the catalog */
+  useEffect(() => {
+    if (catalogComp === "all") {
+      setCatalogBrands([]);
+      setCatalogBrand("all");
+      return;
+    }
+    api.get(`/brand/get_active_brand.php?company_id=${catalogComp}`)
+      .then(res => {
+        if (res.data.status) setCatalogBrands(res.data.data);
+        else setCatalogBrands([]);
+      })
+      .catch(err => { console.error(err); setCatalogBrands([]); });
+    setCatalogBrand("all"); // reset brand whenever company changes
+  }, [catalogComp]);
+
+  const isBrandReport = catalogBrand !== "all";
+  const selectedBrandName = isBrandReport
+    ? (catalogBrands.find(b => String(b.id) === String(catalogBrand))?.name || "-")
+    : null;
+
+  const fetchProductCatalog = async () => {
+    const companyIds =
+      catalogComp === "all"
+        ? companies.map(c => c.id)
+        : [parseInt(catalogComp)];
+
+    if (companyIds.length === 0) return [];
+
+    const brandIdParam = catalogComp === "all" ? 0 : (parseInt(catalogBrand) || 0);
+
+    const requests = companyIds.map(cid =>
+      api.get(`/product/get.php?company_id=${cid}${brandIdParam ? `&brand_id=${brandIdParam}` : ""}`)
+    );
+
+    const responses = await Promise.all(requests);
+    let allProducts = [];
+    responses.forEach(res => {
+      if (res.data.status) allProducts = [...allProducts, ...res.data.data];
+    });
+    return allProducts;
+  };
+
+  const buildCatalogExcelData = (products) =>
+    products.map((p) => ({
+      "Category":     p.category_name || p.category || "-",
+      "Subcategory":  p.subcategory_name || p.subcategory || p.sub_category || "-",
+      "Product Name": p.product_name || p.name || "-",
+      "GST %":        p.gst_percentage ?? p.gst_percent ?? p.gst ?? "-",
+      "Product Code": p.product_code || p.hsn_code || "-",
+      "Unit":         p.unit || p.unit_type || "-",
+      "Brand":        p.brand_name || "-",
+      "Price":        `₹${Number(p.price || 0).toLocaleString()}`,
+      "Stock":        p.stock ?? "-",
+      "Status":       p.status || "-",
+    }));
+
+  const downloadProductCatalog = async () => {
+    setCatalogLoading(true);
+    try {
+      const products = await fetchProductCatalog();
+      if (!products.length) { alert("No products found"); return; }
+
+      const label = catalogBrand !== "all"
+        ? (catalogBrands.find(b => String(b.id) === String(catalogBrand))?.name || "brand").replace(/\s+/g,"_")
+        : "all_brands";
+
+      const ws = XLSX.utils.json_to_sheet(buildCatalogExcelData(products));
+      ws["!cols"] = [
+        {wch:18},{wch:18},{wch:26},{wch:8},{wch:14},{wch:10},{wch:16},{wch:12},{wch:8},{wch:10},
+      ];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Product Catalog");
+      const buf = XLSX.write(wb, { bookType:"xlsx", type:"array" });
+      saveAs(
+        new Blob([buf], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+        `product_catalog_${label}.xlsx`
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch product catalog");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  /* ── filter label (invoice report — company/brand no longer part of it) ── */
   const filterLabel = () => {
     const parts = [];
-    if (selectedComp !== "all") {
-      const c = companies.find(c => String(c.id) === String(selectedComp));
-      if (c) parts.push(c.company_name.replace(/\s+/g,"_"));
-    }
     if (fromDate)  parts.push(`from_${fromDate}`);
     if (toDate)    parts.push(`to_${toDate}`);
     if (paymentMethod !== "all") parts.push(paymentMethod);
@@ -1232,7 +1333,7 @@ export default function Reports() {
             </p>
           </div>
         </div>
-{/* HEADER BUTTONS - replace the entire buttons div */}
+{/* HEADER BUTTONS */}
 <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"center" }}>
   {checkedIds.size > 0 && (
     <span style={{
@@ -1283,27 +1384,89 @@ export default function Reports() {
         </div>
       )}
 
-      {/* SEARCH + FILTER ROW */}
-      <div style={{ display:"flex", gap:10, marginBottom:18, alignItems:"center", flexWrap:"wrap" }}>
+      {/* PRODUCT CATALOG REPORT — independent of invoices/sales.
+          Has its own Company / Brand selectors (moved here from the
+          invoice Filter panel). */}
+      <div className="rp-card" style={{
+        background:"#fff", border:"1.5px solid #e0e7ff", borderRadius:16,
+        padding:"16px 20px", marginBottom:20,
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        flexWrap:"wrap", gap:14,
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, flex:1, minWidth:260 }}>
+          <div style={{
+            width:40, height:40, borderRadius:12, background:"#f3e8ff",
+            display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+          }}><FileText size={18} color="#7e22ce" /></div>
+          <div>
+            <div style={{ fontSize:13, fontWeight:800, color:"#1e1b4b" }}>
+              Product Catalog Report
+            </div>
+            <div style={{ fontSize:11, color:"#9ca3af" }}>
+              All products you've added — not just sold ones.{" "}
+              {catalogComp === "all"
+                ? "Showing: all companies, all brands."
+                : catalogBrand !== "all"
+                  ? `Showing: ${selectedBrandName} only.`
+                  : "Showing: all brands for the selected company."}
+            </div>
+          </div>
+        </div>
 
-        {/* Company Selector */}
-        {/* <select
-          className="rp-filter-input"
-          value={selectedComp}
-          onChange={e => setSelectedComp(e.target.value)}
-          style={{
-            ...selectStyle,
-            width:"auto", minWidth:180,
-            border:"1.5px solid #c7d2fe",
-            borderRadius:12,
-            padding:"10px 14px",
-          }}
-        >
-          <option value="all">🏢 All Companies</option>
-          {companies.map(c => (
-            <option key={c.id} value={c.id}>{c.company_name}</option>
-          ))}
-        </select> */}
+        {/* Company / Brand selectors for the catalog report */}
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"flex-end" }}>
+          <div style={{ minWidth:170 }}>
+            <label style={{ fontSize:11, fontWeight:700, color:"#4338ca", display:"block", marginBottom:6 }}>Company</label>
+            <select
+              className="rp-filter-input"
+              value={catalogComp}
+              onChange={e => setCatalogComp(e.target.value)}
+              style={selectStyle}
+            >
+              <option value="all">All Companies</option>
+              {companies.map(c => (
+                <option key={c.id} value={c.id}>{c.company_name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ minWidth:170 }}>
+            <label style={{ fontSize:11, fontWeight:700, color:"#4338ca", display:"block", marginBottom:6 }}>
+              Brand {catalogComp === "all" && (
+                <span style={{ color:"#9ca3af", fontWeight:500 }}>(select company first)</span>
+              )}
+            </label>
+            <select
+              className="rp-filter-input"
+              value={catalogBrand}
+              onChange={e => setCatalogBrand(e.target.value)}
+              disabled={catalogComp === "all"}
+              style={{
+                ...selectStyle,
+                opacity: catalogComp === "all" ? 0.5 : 1,
+                cursor: catalogComp === "all" ? "not-allowed" : "pointer",
+              }}
+            >
+              <option value="all">All Brands</option>
+              {catalogBrands.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            className="rp-dl-btn"
+            onClick={downloadProductCatalog}
+            disabled={catalogLoading}
+            style={{ ...btnPrimary, background:"#7e22ce", opacity: catalogLoading ? 0.7 : 1 }}
+          >
+            <Download size={14} /> {catalogLoading ? "Preparing…" : "Download Excel"}
+          </button>
+        </div>
+      </div>
+
+
+      <div style={{ display:"flex", gap:10, marginBottom:18, alignItems:"center", flexWrap:"wrap" }}>
 
         {/* Search */}
         <div style={{ position:"relative", flex:1, minWidth:200 }}>
@@ -1354,7 +1517,9 @@ export default function Reports() {
         )}
       </div>
 
-      {/* FILTER PANEL */}
+      {/* FILTER PANEL — company/brand removed (now on the Product
+          Catalog Report card above); invoices always cover all
+          companies under this admin. */}
       {showFilter && (
         <div className="filter-panel" style={{
           background:"#fff", border:"1.5px solid #e0e7ff",
@@ -1363,21 +1528,6 @@ export default function Reports() {
           gridTemplateColumns:"repeat(auto-fit, minmax(170px, 1fr))",
           gap:14,
         }}>
-          <div>
-            <label style={{ fontSize:11, fontWeight:700, color:"#4338ca", display:"block", marginBottom:6 }}>Company</label>
-            <select
-              className="rp-filter-input"
-              value={selectedComp}
-              onChange={e => setSelectedComp(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="all">All Companies</option>
-              {companies.map(c => (
-                <option key={c.id} value={c.id}>{c.company_name}</option>
-              ))}
-            </select>
-          </div>
-
           <div>
             <label style={{ fontSize:11, fontWeight:700, color:"#4338ca", display:"block", marginBottom:6 }}>From Date</label>
             <input type="date" className="rp-filter-input" value={fromDate}
@@ -1439,7 +1589,7 @@ export default function Reports() {
         <div style={{ height:4, background:"linear-gradient(90deg,#4338ca,#6366f1,#818cf8)" }} />
 
         <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", minWidth:1150 }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", minWidth:1230 }}>
             <thead>
               <tr style={{ background:"#eef2ff" }}>
                 {/* Checkbox all */}
@@ -1451,7 +1601,7 @@ export default function Reports() {
                     onChange={toggleAll}
                   />
                 </th>
-                {["#","Invoice No","Customer","Phone","Amount","Paid","Balance","Method","Status","By","Action"].map((h,i) => (
+                {["#","Invoice No","Customer","Phone","Amount","Paid","Balance","Method","Status","By","Date","Action"].map((h,i) => (
                   <th key={i} style={{
                     padding:"12px 16px", textAlign:"left",
                     fontSize:11, fontWeight:700, color:INDIGO,
@@ -1534,6 +1684,10 @@ export default function Reports() {
 
                     <td style={{ padding:"13px 16px", color:"#6b7280" }}>
                       {inv.cashier_name || "-"}
+                    </td>
+
+                    <td style={{ padding:"13px 16px", color:"#6b7280", whiteSpace:"nowrap" }}>
+                      {formatDate(inv.created_at)}
                     </td>
 
                     <td style={{ padding:"13px 16px" }}>

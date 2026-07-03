@@ -600,9 +600,16 @@ function DesignStripe({ invoice, company, color, logoUrl }) {
 
 
 
+// function DesignPOS({ invoice, company, logoUrl }) {
+//   const date = new Date().toLocaleDateString("en-IN");
+//   const time = new Date().toLocaleTimeString("en-IN", {
+//     hour: "2-digit",
+//     minute: "2-digit"
+//   });
 function DesignPOS({ invoice, company, logoUrl }) {
-  const date = new Date().toLocaleDateString("en-IN");
-  const time = new Date().toLocaleTimeString("en-IN", {
+  const createdAt = invoice.created_at ? new Date(invoice.created_at) : new Date();
+  const date = createdAt.toLocaleDateString("en-IN");
+  const time = createdAt.toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit"
   });
