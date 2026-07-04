@@ -12,7 +12,15 @@ import {
    AlertCircle ,
    User,
   LogOut,
-  CreditCard
+  FolderTree,
+  Boxes,
+  Tags,
+  Truck,
+  PackageSearch,
+  Users,
+  UserCog,
+  ClipboardList,
+  Building,
 } from "lucide-react";
 
 export default function MainLayout() {
@@ -41,12 +49,12 @@ export default function MainLayout() {
           { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={20} /> },
           { name: "Company", path: "/company", icon: <Building2 size={20} /> },
           { name: "Category", path: "/category", icon: <Package size={20} /> },
-          { name: "Subcategory", path: "/subcategory", icon: <Package size={20} /> },
-          { name: "Brand", path: "/brand", icon: <Package size={20} /> },
-          { name: "supplier", path: "/supplier", icon: <Package size={20} /> },
-          { name: "Products", path: "/products", icon: <Package size={20} /> },
+          { name: "Subcategory", path: "/subcategory", icon: <Boxes size={20} /> },
+          { name: "Brand", path: "/brand", icon: <Tags size={20} /> },
+          { name: "supplier", path: "/supplier", icon: <Truck size={20} /> },
+          { name: "Products", path: "/products", icon: <PackageSearch size={20} /> },
           { name: "Reports", path: "/reports", icon: <BarChart3 size={20} /> },
-          { name: "Cashiers", path: "/cashier", icon: <Building2 size={20} /> },
+          { name: "Cashiers", path: "/cashier", icon: <Users size={20} /> },
           // { name: "Profile", path: "/profile", icon: <Settings size={20} /> },
           { name: "Customer", path: "/customer", icon: <User size={20} /> },
           
@@ -58,9 +66,9 @@ export default function MainLayout() {
     ...(role === "superadmin"
       ? [
           // { name: "Company", path: "/company", icon: <Building2 size={20} /> },
-          { name: "Admin List", path: "/admin", icon: <Building2 size={20} /> },
-          { name: "Cashier Requests", path: "/cashier-requests", icon: <Building2 size={20} /> },
-          { name: "Company Requests", path: "/company-requests", icon: <Building2 size={20} /> }
+          { name: "Admin List", path: "/admin", icon: <UserCog size={20} /> },
+          { name: "Cashier Requests", path: "/cashier-requests", icon: <ClipboardList size={20} /> },
+          { name: "Company Requests", path: "/company-requests", icon: <Building size={20} /> }
         ]
       : []),
 
