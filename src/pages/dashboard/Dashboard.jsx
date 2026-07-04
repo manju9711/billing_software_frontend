@@ -723,6 +723,7 @@ const [overdueList, setOverdueList] = useState([]);
 
 const isAdmin = user?.role === "admin";
 const bellRef = useRef(null);
+const profileRef = useRef(null);
 
 
 const [notifPos, setNotifPos] = useState({
@@ -874,13 +875,14 @@ useEffect(()=>{
   const tdStyle = (bg = "#fff") => ({ padding: "13px 20px", fontSize: 14, color: "#374151", background: bg });
 
 
-  useEffect(() => {
+ useEffect(() => {
   const handler = (e) => {
     if (!e.target.closest(".notif-bell")) setShowNotif(false);
+    if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfile(false);
   };
-  if (showNotif) document.addEventListener("mousedown", handler);
+  document.addEventListener("mousedown", handler);
   return () => document.removeEventListener("mousedown", handler);
-}, [showNotif]);
+}, []);
 
 
   return (
@@ -931,19 +933,18 @@ useEffect(()=>{
 
 
 
-          <div
+        <div
+    ref={profileRef}
     style={{ position: "relative" }}
-    onMouseEnter={() => setShowProfile(true)}
-    onMouseLeave={() => setShowProfile(false)}
 >
-
     <button
+        onClick={() => setShowProfile(v => !v)}
         style={{
             height: 42,
             padding: "0 16px",
             borderRadius: 12,
             border: "1.5px solid #e0e7ff",
-            background: "#fff",
+            background: showProfile ? "#eef2ff" : "#fff",
             cursor: "pointer",
             fontWeight: 700,
             display: "flex",
@@ -955,9 +956,7 @@ useEffect(()=>{
         <ChevronDown size={16} />
     </button>
 
-    {
-        showProfile &&
-
+    {showProfile &&
         <div
             style={{
                 position: "absolute",
@@ -971,50 +970,30 @@ useEffect(()=>{
                 zIndex: 9999
             }}
         >
-
-            {/* <div
-                style={{
-                    padding: 14,
-                    cursor: "pointer"
-                }}
-                onClick={() => navigate("/change-password")}
-            >
-                🔒 Change Password
-            </div> */}
             {(user.role === "admin" || user.role === "cashier") && (
-    <div
-        style={{
-            padding: 14,
-            cursor: "pointer"
-        }}
-        onClick={() => navigate("/change-password")}
-    >
-        🔒 Change Password
-    </div>
-)}
+                <div
+                    style={{ padding: 14, cursor: "pointer" }}
+                    onClick={() => {
+                        setShowProfile(false);
+                        navigate("/change-password");
+                    }}
+                >
+                    🔒 Change Password
+                </div>
+            )}
 
             <div
-                style={{
-                    padding: 14,
-                    cursor: "pointer",
-                    color: "red"
-                }}
+                style={{ padding: 14, cursor: "pointer", color: "red" }}
                 onClick={() => {
-
                     localStorage.clear();
-
                     navigate("/");
-
                 }}
             >
                 🚪 Logout
             </div>
-
         </div>
     }
-
 </div>
-
           {/* Bell Notification — admin only */}
 {isAdmin && (
   <div ref={bellRef} style={{ position:"relative", zIndex: 1000 }}>
