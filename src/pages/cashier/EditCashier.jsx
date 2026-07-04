@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function EditCashier() {
   const { id } = useParams();
@@ -39,6 +40,12 @@ const showToast = (msg, ok = true) => {
     showToast("Email is required", false);
     return;
   }
+
+
+  if (form.password && form.password.trim().length < 6) {
+  showToast("Password must be at least 6 characters", false);
+  return;
+}
 
   if (!/\S+@\S+\.\S+/.test(form.email)) {
     showToast("Enter valid email", false);
@@ -516,28 +523,30 @@ const showToast = (msg, ok = true) => {
               </div>
             </div>
 
+          
+
             {/* Password */}
-            {/* <div className="ec-field">
-              <label className="ec-label">New Password</label>
-              <div className="ec-input-wrap">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="ec-input"
-                  placeholder="Leave blank to keep current"
-                  value={form.password}
-                  onChange={e => setForm({ ...form, password: e.target.value })}
-                />
-                <span className="ec-input-icon">🔒</span>
-                <button
-                  type="button"
-                  className="ec-pw-toggle"
-                  onClick={() => setShowPassword(p => !p)}
-                >
-                  {showPassword ? "🙈" : "👁️"}
-                </button>
-              </div>
-              <p className="ec-hint">⚡ Min. 6 characters. Leave empty to keep unchanged.</p>
-            </div> */}
+<div className="ec-field">
+  <label className="ec-label">New Password</label>
+  <div className="ec-input-wrap">
+    <input
+      type={showPassword ? "text" : "password"}
+      className="ec-input"
+      placeholder="Leave blank to keep current"
+      value={form.password}
+      onChange={e => setForm({ ...form, password: e.target.value })}
+    />
+    <span className="ec-input-icon">🔒</span>
+    <button
+      type="button"
+      className="ec-pw-toggle"
+      onClick={() => setShowPassword(p => !p)}
+    >
+      {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+    </button>
+  </div>
+  <p className="ec-hint">⚡ Min. 6 characters. Leave empty to keep unchanged.</p>
+</div>
 
             <div className="ec-divider" />
 
