@@ -322,23 +322,27 @@ export default function SupplierAddProductForm() {
 
     setLoading(true);
     try {
-      const res = await api.post("/supplier_product/add.php", {
-        supplier_id: supplierId,
-        product_name: form.name,
-        product_code: form.product_code,
-        category_id: form.category_id,
-        subcategory_id: form.subcategory_id,
-        brand_id: form.brand_id,
-        company_id: getCompanyId(),
-        price: form.price,
-        stock: form.stock,
-        gst_percentage: gstEnabled ? form.gst : "",
-        barcode: form.barcode,
-        unit: form.unit
-      });
+      const res = await api.post("/product/add.php", {
+  supplier_id: supplierId,
+  product_name: form.name,
+  product_code: form.product_code,
+  category_id: form.category_id,
+  subcategory_id: form.subcategory_id,
+  brand_id: form.brand_id,
+  company_id: getCompanyId(),
+  price: form.price,
+  stock: form.stock,
+  gst_percentage: gstEnabled ? form.gst : "",
+  barcode: form.barcode,
+  unit: form.unit
+});
       if (res.data.status) {
         show("success", "Product Added!", `"${form.name}" saved successfully.`);
-        setTimeout(() => navigate("/supplier"), 1800);
+        setTimeout(() => {
+  navigate(`/supplier/${supplierId}/products`, {
+    state: { supplierName }
+  });
+}, 1800);
       } else {
         show("error", "Failed", res.data.message || "Something went wrong.");
       }
@@ -968,7 +972,12 @@ export default function SupplierAddProductForm() {
                 : <>💾 Save Product</>
               }
             </button>
-            <button className="spf-cancel" onClick={() => navigate("/supplier")}>
+            <button className="spf-cancel"
+            onClick={() =>
+  navigate(`/supplier/${supplierId}/products`, {
+    state: { supplierName }
+  })
+}>
               Cancel
             </button>
 

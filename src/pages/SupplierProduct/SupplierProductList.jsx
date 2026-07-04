@@ -21,7 +21,7 @@ export default function SupplierProductList() {
     setLoading(true);
     try {
       const res = await api.get(
-        `/supplier_product/get_by_supplier.php?supplier_id=${supplierId}`
+        `/product/get_by_supplier.php?supplier_id=${supplierId}`
       );
       if (res.data.status) setProducts(res.data.data);
     } catch (err) {

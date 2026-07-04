@@ -542,6 +542,7 @@ const handleCompanyChange = async(e) => {
               <tr>
                 <th>#</th>
                 <th>Product</th>
+                <th className="center">Supplier</th>
                 <th className="center">HSN Code</th>
                 <th className="center">Price</th>
                 <th className="center">Stock</th>
@@ -557,7 +558,7 @@ const handleCompanyChange = async(e) => {
               {loading ? (
 
                 <tr>
-                  <td colSpan="9">
+                  <td colSpan="10">
                     Please Select Your company & show your products
                   </td>
                 </tr>
@@ -565,7 +566,7 @@ const handleCompanyChange = async(e) => {
               ) : paginated.length === 0 ? (
 
                 <tr>
-                  <td colSpan="9">
+                  <td colSpan="10">
                     No Products Found
                   </td>
                 </tr>
@@ -601,6 +602,10 @@ const handleCompanyChange = async(e) => {
                         </div>
 
                       </td>
+
+                      <td className="center">
+                      {p.supplier_name || "-"}
+                       </td>
 
                       <td className="center">
 

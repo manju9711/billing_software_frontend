@@ -101,7 +101,7 @@ export default function SupplierEditProduct() {
   const fetchProduct = async () => {
     setFetching(true);
     try {
-      const res = await api.get(`/supplier_product/get_by_id.php?id=${id}`);
+      const res = await api.get(`/product/get_by_id.php?id=${id}`);
       if (res.data.status) {
         const p = res.data.data;
         setSelectedCompany(p.company_id);
@@ -186,44 +186,110 @@ const loadCompanies = async (admin_id) => {
     setBarcodeKey(k => k + 1);
   };
 
-  const handleUpdate = async () => {
-    if (!form.name.trim()) return alert("Product name is required.");
-    if (!form.category_id) return alert("Please select a category.");
-    if (!form.price) return alert("Price is required.");
-    if (!form.stock) return alert("Stock is required.");
+ const handleUpdate = async () => {
 
-    setLoading(true);
-    try {
-      const res = await api.post("/supplier_product/update.php", {
-        id,
-        product_name: form.name,
-        product_code: form.product_code,
-        category_id: form.category_id,
-        subcategory_id: form.subcategory_id,
-        brand_id: form.brand_id,
-        company_id: selectedCompany,
-        price: form.price,
-        stock: form.stock,
-        gst_percentage: gstEnabled ? form.gst : "",
-        barcode: form.barcode,
-        unit: form.unit
-      });
-      if (res.data.status) {
-        alert("Product updated!");
-        navigate(`/suppliers/${supplierId}/products`, { state: { supplierName } });
-      } else {
-        alert(res.data.message || "Update failed");
-      }
-    } finally {
-      setLoading(false);
+  if (!form.name.trim()) {
+    show("warn", "Missing Field", "Product name is required.");
+    return;
+  }
+
+  if (!form.category_id) {
+    show("warn", "Missing Field", "Please select a category.");
+    return;
+  }
+
+  if (!form.subcategory_id) {
+    show("warn", "Missing Field", "Please select a sub category.");
+    return;
+  }
+
+  if (!form.brand_id) {
+    show("warn", "Missing Field", "Please select a brand.");
+    return;
+  }
+
+  if (!form.price) {
+    show("warn", "Missing Field", "Price is required.");
+    return;
+  }
+
+  if (!form.stock) {
+    show("warn", "Missing Field", "Stock quantity is required.");
+    return;
+  }
+
+  if (!form.unit) {
+    show("warn", "Missing Field", "Please select a unit.");
+    return;
+  }
+
+  if (gstEnabled && !form.gst) {
+    show("warn", "Missing Field", "GST percentage is required.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+
+  const res = await api.post("/product/update.php", {
+  id,
+  product_name: form.name,
+  product_code: form.product_code,
+  category_id: form.category_id,
+  subcategory_id: form.subcategory_id,
+  brand_id: form.brand_id,
+  company_id: selectedCompany,
+  price: form.price,
+  stock: form.stock,
+  gst_percentage: gstEnabled ? form.gst : "",
+  barcode: form.barcode,
+  unit: form.unit
+});
+
+    if (res.data.status) {
+
+      show(
+        "success",
+        "Product Updated!",
+        `"${form.name}" updated successfully.`
+      );
+
+      setTimeout(() => {
+        navigate(`/supplier/${supplierId}/products`, {
+          state: { supplierName }
+        });
+      }, 1500);
+
+    } else {
+
+      show(
+        "error",
+        "Update Failed",
+        res.data.message || "Something went wrong."
+      );
+
     }
-  };
 
-  // 🎨 UI: reuse EditProduct.jsx's <style> block (ep- classes) and the
-  // exact same JSX form fields (Product Name, HSN, Category, Sub Category,
-  // Brand, Price, Stock, Unit, GST, Barcode, Submit/Cancel buttons) — just
-  // swap the API endpoints above and point Cancel to
-  // `/suppliers/${supplierId}/products`.
+  } catch (err) {
+
+    console.error(err);
+
+    show(
+      "error",
+      "Server Error",
+      "Unable to update product. Please try again."
+    );
+
+  } finally {
+
+    setLoading(false);
+
+  }
+
+};
+
+
 
  return (
      <>

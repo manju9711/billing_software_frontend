@@ -733,6 +733,7 @@ export default function EditProduct() {
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -751,6 +752,7 @@ export default function EditProduct() {
     category_id: "",
     subcategory_id: "",
     brand_id: "",
+    supplier_id: "",
     unit: ""
   });
 
@@ -861,6 +863,33 @@ export default function EditProduct() {
 
   };
 
+
+  const fetchSuppliers = async (company_id) => {
+
+  if (!company_id) {
+    setSuppliers([]);
+    return;
+  }
+
+  try {
+
+    const res = await api.get(
+      `/supplier/get_all.php?company_id=${company_id}`
+    );
+
+    if (res.data.status) {
+      setSuppliers(res.data.data);
+    } else {
+      setSuppliers([]);
+    }
+
+  } catch (err) {
+    console.log(err);
+    setSuppliers([]);
+  }
+
+};
+  
   const fetchBrands = async (company_id, category_id, subcategory_id) => {
 
     if (!company_id || !category_id || !subcategory_id) {
@@ -908,6 +937,7 @@ export default function EditProduct() {
         // load dropdown source data for this product's company
         await fetchCategories(p.company_id);
         await fetchCompanyGSTByCompanyId(p.company_id);
+        await fetchSuppliers(p.company_id);
 
         if (p.category_id) {
           await fetchSubCategories(p.company_id, p.category_id);
@@ -927,6 +957,7 @@ export default function EditProduct() {
           category_id: p.category_id ? String(p.category_id) : "",
           subcategory_id: p.subcategory_id ? String(p.subcategory_id) : "",
           brand_id: p.brand_id ? String(p.brand_id) : "",
+          supplier_id: p.supplier_id ? String(p.supplier_id) : "",
           unit: p.unit || ""
         });
 
@@ -945,27 +976,28 @@ export default function EditProduct() {
   }, [id]);
 
   /* ── Company change (same behaviour as ProductForm) ── */
-  const handleCompanyChange = (e) => {
+ const handleCompanyChange = (e) => {
 
-    const companyId = e.target.value;
+  const companyId = e.target.value;
 
-    setSelectedCompany(companyId);
-    localStorage.setItem("selected_company_id", companyId);
+  setSelectedCompany(companyId);
+  localStorage.setItem("selected_company_id", companyId);
 
-    setForm(prev => ({
-      ...prev,
-      category_id: "",
-      subcategory_id: "",
-      brand_id: ""
-    }));
+  setForm(prev => ({
+    ...prev,
+    category_id: "",
+    subcategory_id: "",
+    brand_id: "",
+    supplier_id: ""
+  }));
 
-    fetchCategories(companyId);
-    fetchCompanyGSTByCompanyId(companyId);
-    setSubCategories([]);
-    setBrands([]);
+  fetchCategories(companyId);
+  fetchCompanyGSTByCompanyId(companyId);
+  fetchSuppliers(companyId);
+  setSubCategories([]);
+  setBrands([]);
 
-  };
-
+};
   const generateBarcode = () => {
     const code = "PRD" + Math.floor(100000 + Math.random() * 900000);
     setForm(p => ({ ...p, barcode: code }));
@@ -977,6 +1009,7 @@ export default function EditProduct() {
     if (!form.category_id)    { show("warn", "Missing Field", "Please select a category."); return; }
     if (!form.subcategory_id) { show("warn", "Missing Field", "Please select a sub category."); return; }
     if (!form.brand_id)          { show("warn", "Missing Field", "Please select a brand."); return; }
+    if (!form.supplier_id)    { show("warn", "Missing Field", "Please select a supplier."); return; }
     if (!form.price)          { show("warn", "Missing Field", "Price is required."); return; }
     if (isNaN(Number(form.price)) || Number(form.price) < 0) { show("warn", "Invalid Price", "Please enter a valid price."); return; }
     if (!form.stock)          { show("warn", "Missing Field", "Stock quantity is required."); return; }
@@ -997,6 +1030,7 @@ export default function EditProduct() {
         category_id: form.category_id,
         subcategory_id: form.subcategory_id,
         brand_id: form.brand_id,
+         supplier_id: form.supplier_id,
         company_id: selectedCompany,
         price: form.price,
         stock: form.stock,
@@ -1324,6 +1358,40 @@ export default function EditProduct() {
                 ))}
               </select>
             </div>
+
+<div className="ep-field">
+  <label className="ep-label">
+    Supplier <span style={{color:"#ef4444"}}>*</span>
+  </label>
+
+  {fetching
+    ? <div className="ep-skel" />
+    : <div className="ep-select-wrap ep-input-wrap">
+        <span className="ep-input-icon">🚚</span>
+
+        <select
+          className="ep-select"
+          value={form.supplier_id}
+          onChange={(e) => set("supplier_id", e.target.value)}
+          disabled={!selectedCompany}
+        >
+          <option value="">
+            {selectedCompany ? "Select Supplier" : "Select Company First"}
+          </option>
+
+          {suppliers.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.supplier_name}
+            </option>
+          ))}
+        </select>
+
+        <span className="ep-select-arrow">▾</span>
+      </div>
+  }
+</div>
+
+
 
             <div className="ep-field">
               <label className="ep-label">Product Name <span style={{color:"#ef4444"}}>*</span></label>
