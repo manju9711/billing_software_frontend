@@ -1,4 +1,4 @@
-
+//add unit field
 // import { useEffect, useState } from "react";
 // import { useNavigate } from "react-router-dom";
 // import Barcode from "react-barcode";
@@ -38,83 +38,254 @@
 // export default function ProductForm() {
 //   const navigate = useNavigate();
 //   const [categories, setCategories] = useState([]);
+//   const [subCategories, setSubCategories] = useState([]);
+//   const [brands, setBrands] = useState([]);
 //   const [loading, setLoading] = useState(false);
 //   const [barcodeKey, setBarcodeKey] = useState(0);
 //   const [gstEnabled, setGstEnabled] = useState(false);
 //   const [gstLoading, setGstLoading] = useState(true);
 //   const { toasts, show, remove } = useToast();
 //   const [existingCodes, setExistingCodes] = useState([]);
+// const [companies,setCompanies] = useState([]);
+// const [selectedCompany,setSelectedCompany] = useState("");
 
+// useEffect(() => {
+
+//   const user = JSON.parse(
+//     localStorage.getItem("user")
+//   );
+
+//   if(!user?.id) return;
+
+//   loadCompanies(user.id);
+
+// }, []);
+
+// const loadCompanies = async(admin_id) => {
+
+//   try {
+
+//     const res = await api.get(
+//       `/company/get_companies_by_admin.php?admin_id=${admin_id}`
+//     );
+
+//     if(res.data.status){
+
+//       setCompanies(res.data.data);
+
+//     }
+
+//   } catch(err){
+
+//     console.log(err);
+
+//   }
+
+// };
 //   const [form, setForm] = useState({
-//     name: "", product_code: "", price: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
+//     name: "", product_code: "", price: "", brand_id: "",
+//   subcategory_id: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
 //   });
 
 //   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
-//   const getCompanyId = () => {
-//     const user = JSON.parse(localStorage.getItem("user"));
-//     return Number(user?.company_id);
-//   };
+// const getCompanyId = () => {
 
-//   const fetchCompanyGST = async () => {
+//   return Number(
+//     localStorage.getItem("selected_company_id")
+//   );
+
+// };
+
+//  const fetchCompanyGST = async (company_id) => {
+
 //     setGstLoading(true);
-//     try {
-//       const company_id = getCompanyId();
-//       if (!company_id) return;
-//       const res = await api.post("/company/get_company_by_id.php", { id: company_id });
-//       if (res.data.status) {
-//         const company = res.data.data;
-//         if (company.gst_type === "with_gst") {
-//           setGstEnabled(true);
-//         } else {
-//           setGstEnabled(false);
-//           set("gst", "");
-//         }
-//       }
-//     } catch (err) {
-//       console.error("GST fetch error:", err);
-//       setGstEnabled(false);
-//     } finally {
-//       setGstLoading(false);
-//     }
-//   };
 
-//   const fetchCategories = async () => {
 //     try {
-//       const company_id = getCompanyId();
-//       if (!company_id) return;
-//       const res = await api.get(`/category/get_active_category.php?company_id=${company_id}`);
-//       if (res.data.status) setCategories(res.data.data);
-//     } catch (err) {
-//       console.error("Category fetch error:", err);
+
+//         if(!company_id) return;
+
+//         const res = await api.post(
+//             "/company/get_company_by_id.php",
+//             {
+//                 id: company_id
+//             }
+//         );
+
+//         if(res.data.status){
+
+//             const company = res.data.data;
+
+//             setGstEnabled(
+//                 company.gst_type === "with_gst"
+//             );
+
+//         }
+
+//     } finally {
+
+//         setGstLoading(false);
+
 //     }
-//   };
-//   const fetchProducts = async () => {
+
+// };
+
+// const fetchCategories = async (company_id) => {
+
 //   try {
-//     const company_id = getCompanyId();
-//     if (!company_id) return;
+
+//     if (!company_id) {
+//       setCategories([]);
+//       return;
+//     }
+
+//     const res = await api.get(
+//       `/category/get_active_category.php?company_id=${company_id}`
+//     );
+
+//     if (res.data.status) {
+//       setCategories(res.data.data);
+//     } else {
+//       setCategories([]);
+//     }
+
+//   } catch (err) {
+
+//     console.log(err);
+//     setCategories([]);
+
+//   }
+
+// };
+
+// const fetchSubCategories = async (company_id,category_id) => {
+
+//   if (!category_id) {
+//     setSubCategories([]);
+//     return;
+//   }
+
+//   try {
+
+//     const res = await api.get(
+//       `/subcategory/get_active_subcategory.php?company_id=${company_id}&category_id=${category_id}`
+//     );
+
+//     if (res.data.status) {
+//       setSubCategories(res.data.data);
+//     } else {
+//       setSubCategories([]);
+//     }
+
+//   } catch (err) {
+//     console.log(err);
+//   }
+
+// };
+
+// const fetchBrands = async (company_id, category_id, subcategory_id) => {
+
+//   if (!company_id || !category_id || !subcategory_id) {
+//     setBrands([]);
+//     return;
+//   }
+
+//   try {
+
+//     const res = await api.get(
+//       `/brand/get_active_brand.php?company_id=${company_id}&category_id=${category_id}&subcategory_id=${subcategory_id}`
+//     );
+
+//     if (res.data.status) {
+
+//       setBrands(res.data.data);
+
+//     } else {
+
+//       setBrands([]);
+
+//     }
+
+//   } catch (err) {
+
+//     console.log(err);
+//     setBrands([]);
+
+//   }
+
+// };
+// const fetchProducts = async(company_id) => {
+
+//   if(!company_id){
+
+//     setProducts([]);
+//     return;
+
+//   }
+
+//   setLoading(true);
+
+//   try {
 
 //     const res = await api.get(
 //       `/product/get.php?company_id=${company_id}`
 //     );
 
-//     if (res.data.status) {
-//       const codes = res.data.data.map(
-//         p => (p.product_code || "").toUpperCase()
-//       );
+//     if(res.data.status){
 
-//       setExistingCodes(codes);
+//       setProducts(res.data.data);
+
 //     }
-//   } catch (err) {
-//     console.error("Product fetch error:", err);
+
+//   } catch(err){
+
+//     console.log(err);
+
+//   } finally {
+
+//     setLoading(false);
+
 //   }
+
 // };
 
-//   useEffect(() => {
-//     fetchCategories();
-//     fetchCompanyGST();
-//     fetchProducts();
-//   }, []);
+// useEffect(() => {
+
+//     if(!selectedCompany) return;
+
+//     fetchCategories(selectedCompany);
+//     fetchCompanyGST(selectedCompany);
+//     fetchProducts(selectedCompany);
+
+// }, [selectedCompany]);
+
+
+// const handleCompanyChange = (e) => {
+
+//     const companyId = e.target.value;
+
+//     setSelectedCompany(companyId);
+
+//     localStorage.setItem(
+//         "selected_company_id",
+//         companyId
+//     );
+
+//     // Reset previous category
+//     setForm(prev => ({
+//         ...prev,
+//         category_id: "",
+//          subcategory_id: "",
+//           brand: ""
+//     }));
+    
+//     fetchCategories(companyId);
+//     fetchCompanyGST(companyId);
+//     fetchProducts(companyId);
+//     setSubCategories([]);
+//     setBrands([]);
+
+// };
 
 //   const generateBarcode = () => {
 //     const code = "PRD" + Math.floor(100000 + Math.random() * 900000);
@@ -125,11 +296,33 @@
 //   const handleSubmit = async () => {
 //     if (!form.name.trim())    { show("warn", "Missing Field", "Product name is required."); return; }
 //     if (!form.category_id)    { show("warn", "Missing Field", "Please select a category."); return; }
+//     if (!form.subcategory_id) {
+
+//     show(
+//         "warn",
+//         "Missing Field",
+//         "Please select a sub category."
+//     );
+
+//     return;
+
+// }
+// if (!form.brand_id) {
+
+//   show(
+//     "warn",
+//     "Missing Field",
+//     "Please select a brand."
+//   );
+
+//   return;
+
+// }
 //     if (!form.price)          { show("warn", "Missing Field", "Price is required."); return; }
 //     if (isNaN(Number(form.price)) || Number(form.price) < 0) { show("warn", "Invalid Price", "Please enter a valid price."); return; }
 //     if (!form.stock)          { show("warn", "Missing Field", "Stock quantity is required."); return; }
 //     if (isNaN(Number(form.stock)) || Number(form.stock) < 0) { show("warn", "Invalid Stock", "Please enter a valid stock quantity."); return; }
-//     // if (!form.unit.trim())    { show("warn", "Missing Field", "Unit is required (e.g. kg, litre, piece)."); return; }
+//     if (!form.unit.trim())    { show("warn", "Missing Field", "Unit is required (e.g. kg, litre, piece)."); return; }
 //     if (gstEnabled && !form.gst) { show("warn", "Missing Field", "GST percentage is required."); return; }
 //     if (gstEnabled && (isNaN(Number(form.gst)) || Number(form.gst) < 0 || Number(form.gst) > 100)) {
 //       show("warn", "Invalid GST", "Please enter a valid GST percentage (0–100).");
@@ -154,6 +347,8 @@
 //         product_name: form.name,
 //         product_code: form.product_code,
 //         category_id: form.category_id,
+//         subcategory_id: form.subcategory_id,
+//          brand_id: form.brand_id,
 //         company_id: getCompanyId(),
 //         price: form.price,
 //         stock: form.stock,
@@ -446,10 +641,67 @@
 //             </div>
 //           </div>
 
+          
+
 //           <div className="pf-body">
 
 //             {/* ── Basic Info ── */}
 //             <p className="pf-section">Basic Info</p>
+
+//             <div
+//   style={{
+//     display:"flex",
+//     alignItems:"center",
+//     width:"320px",
+//     background:"#fff",
+//     border:"1px solid #dbeafe",
+//     borderRadius:"14px",
+//     padding:"12px 15px",
+//     marginBottom:"20px",
+//     boxShadow:"0 4px 16px rgba(37,99,235,.08)"
+//   }}
+// >
+//   <span
+//     style={{
+//       marginRight:"10px",
+//       fontSize:"18px"
+//     }}
+//   >
+//     🏢
+//   </span>
+
+//   <select
+//     value={selectedCompany}
+//     onChange={handleCompanyChange}
+//     style={{
+//       flex:1,
+//       border:"none",
+//       outline:"none",
+//       background:"transparent",
+//       fontSize:"14px",
+//       fontWeight:"700",
+//       cursor:"pointer"
+//     }}
+//   >
+//     <option value="">
+//       Select Company
+//     </option>
+
+//     {companies.map((c) => (
+
+//       <option
+//         key={c.id}
+//         value={c.id}
+//       >
+//         {c.company_name}
+//       </option>
+
+//     ))}
+
+//   </select>
+
+
+// </div>
 
 //             <div className="pf-field">
 //               <label className="pf-label">Product Name <span style={{color:"#ef4444"}}>*</span></label>
@@ -464,7 +716,7 @@
             
 // <div className="pf-field">
 //   <label className="pf-label">
-//     Product Code
+//     HSN Code
 //   </label>
 
 //   <div className="pf-input-wrap">
@@ -490,17 +742,136 @@
 //               <label className="pf-label">Category <span style={{color:"#ef4444"}}>*</span></label>
 //               <div className="pf-select-wrap pf-input-wrap">
 //                 <span className="pf-input-icon">🗂️</span>
-//                 <select className="pf-select"
+//                 {/* <select className="pf-select"
 //                   value={form.category_id}
-//                   onChange={e => set("category_id", e.target.value)}>
+//                   onChange={e => set("category_id", e.target.value)}> 
 //                   <option value="">Select a category…</option>
 //                   {categories.map(c => (
 //                     <option key={c.id} value={c.id}>{c.name}</option>
 //                   ))}
-//                 </select>
+//                 </select> */}
+//                 <select
+//   className="pf-select"
+//   value={form.category_id}
+//  onChange={(e) => {
+
+//     const categoryId = e.target.value;
+
+//     set("category_id", categoryId);
+//     set("subcategory_id", "");
+//     set("brand_id", "");
+
+//     fetchSubCategories(
+//         selectedCompany,
+//         categoryId
+//     );
+
+//     setBrands([]);
+
+// }}
+// >
+//   <option value="">Select a category...</option>
+
+//   {categories.map((c) => (
+//     <option key={c.id} value={c.id}>
+//       {c.name}
+//     </option>
+//   ))}
+// </select>
 //                 <span className="pf-select-arrow">▾</span>
 //               </div>
 //             </div>
+
+//             <div className="pf-field">
+
+//   <label className="pf-label">
+//     Sub Category
+//   </label>
+
+//   <div className="pf-select-wrap pf-input-wrap">
+
+//     <span className="pf-input-icon">📂</span>
+
+//     <select
+//       className="pf-select"
+//       value={form.subcategory_id}
+//       // onChange={(e) => set("subcategory_id", e.target.value)}
+//       onChange={(e) => {
+
+//   set("subcategory_id", e.target.value);
+//   set("brand_id", "");
+
+//   fetchBrands(
+//     selectedCompany,
+//     form.category_id,
+//     e.target.value
+//   );
+
+// }}
+//     >
+
+//       <option value="">
+//         Select Sub Category
+//       </option>
+
+//       {subCategories.map((s) => (
+
+//         <option
+//           key={s.id}
+//           value={s.id}
+//         >
+//           {s.name}
+//         </option>
+
+//       ))}
+
+//     </select>
+
+//     <span className="pf-select-arrow">▾</span>
+
+//   </div>
+
+// </div>
+// {/* brand  */}
+
+//             <div className="pf-field">
+
+//   <label className="pf-label">
+//     Brand
+//   </label>
+
+//   <div className="pf-input-wrap">
+
+//     <span className="pf-input-icon">🏷️</span>
+
+//     <select
+//   className="pf-select"
+//   value={form.brand_id}
+//   onChange={(e) => set("brand_id", e.target.value)}
+// >
+
+//   <option value="">
+//     Select Brand
+//   </option>
+
+//   {brands.map((b) => (
+
+//     <option
+//       key={b.id}
+//       value={b.id}
+//     >
+//       {b.name}
+//     </option>
+
+//   ))}
+
+// </select>
+
+// <span className="pf-select-arrow">▾</span>
+
+//   </div>
+
+// </div>
 
 //             {/* ── Pricing & Stock ── */}
 //             <p className="pf-section" style={{marginTop:"1.25rem"}}>Pricing & Stock</p>
@@ -525,8 +896,8 @@
 //                 </div>
 //               </div>
 //             </div>
-// {/* 
-//             <div className="pf-field">
+
+//             {/* <div className="pf-field">
 //               <label className="pf-label">Unit <span style={{color:"#ef4444"}}>*</span></label>
 //               <div className="pf-input-wrap">
 //                 <span className="pf-input-icon">📏</span>
@@ -537,7 +908,43 @@
 //                   onChange={e => set("unit", e.target.value)}
 //                 />
 //               </div>
-//             </div> */}
+//             </div>  */}
+
+//             <div className="pf-field">
+//   <label className="pf-label">
+//     Unit <span style={{ color: "#ef4444" }}>*</span>
+//   </label>
+
+//   <div className="pf-select-wrap pf-input-wrap">
+//     <span className="pf-input-icon">📏</span>
+
+//     <select
+//       className="pf-select"
+//       value={form.unit}
+//       onChange={(e) => set("unit", e.target.value)}
+//     >
+//       <option value="">Select Unit</option>
+//       <option value="Piece">Piece</option>
+//       <option value="Kg">Kg</option>
+//       <option value="Gram">Gram</option>
+//       <option value="Litre">Litre</option>
+//       <option value="ML">ML</option>
+//       <option value="Meter">Meter</option>
+//       <option value="Feet">Feet</option>
+//       <option value="Box">Box</option>
+//       <option value="Pack">Pack</option>
+//       <option value="Dozen">Dozen</option>
+//       <option value="Pair">Pair</option>
+//       <option value="Roll">Roll</option>
+//       <option value="Bag">Bag</option>
+//       <option value="Bottle">Bottle</option>
+//       <option value="Can">Can</option>
+//       <option value="Set">Set</option>
+//     </select>
+
+//     <span className="pf-select-arrow">▾</span>
+//   </div>
+// </div>
 
 //             {/* ── GST (conditional) ── */}
 //             <div className="pf-field">
@@ -617,7 +1024,7 @@
 // }
 
 
-//add unit field
+//supplier dropdown
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Barcode from "react-barcode";
@@ -668,6 +1075,39 @@ export default function ProductForm() {
 const [companies,setCompanies] = useState([]);
 const [selectedCompany,setSelectedCompany] = useState("");
 
+
+const [suppliers, setSuppliers] = useState([]);
+// const [supplierId, setSupplierId] = useState("");
+
+// useEffect(() => {
+//   if (selectedCompany) {
+//     api.get(`/supplier/get_all.php?company_id=${companyId}`)
+//       .then(res => {
+//         if (res.data.status) setSuppliers(res.data.data);
+//       });
+//   }
+// }, [companyId]);
+
+
+
+const fetchSuppliers = async (company_id) => {
+  if (!company_id) {
+    setSuppliers([]);
+    return;
+  }
+  try {
+    const res = await api.get(`/supplier/get_all.php?company_id=${company_id}`);
+    if (res.data.status) {
+      setSuppliers(res.data.data);
+    } else {
+      setSuppliers([]);
+    }
+  } catch (err) {
+    console.log(err);
+    setSuppliers([]);
+  }
+};
+
 useEffect(() => {
 
   const user = JSON.parse(
@@ -703,7 +1143,7 @@ const loadCompanies = async(admin_id) => {
 };
   const [form, setForm] = useState({
     name: "", product_code: "", price: "", brand_id: "",
-  subcategory_id: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
+  subcategory_id: "", stock: "", gst: "", barcode: "", category_id: "", unit: "",supplier_id: ""
   });
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
@@ -875,6 +1315,7 @@ useEffect(() => {
     fetchCategories(selectedCompany);
     fetchCompanyGST(selectedCompany);
     fetchProducts(selectedCompany);
+    fetchSuppliers(selectedCompany); 
 
 }, [selectedCompany]);
 
@@ -893,14 +1334,17 @@ const handleCompanyChange = (e) => {
     // Reset previous category
     setForm(prev => ({
         ...prev,
+        supplier_id: "" ,
         category_id: "",
          subcategory_id: "",
-          brand: ""
+          brand_id: ""
+          
     }));
     
     fetchCategories(companyId);
     fetchCompanyGST(companyId);
     fetchProducts(companyId);
+    fetchSuppliers(companyId); 
     setSubCategories([]);
     setBrands([]);
 
@@ -914,6 +1358,14 @@ const handleCompanyChange = (e) => {
 
   const handleSubmit = async () => {
     if (!form.name.trim())    { show("warn", "Missing Field", "Product name is required."); return; }
+    if (!form.supplier_id) {
+  show(
+    "warn",
+    "Missing Field",
+    "Please select a supplier."
+  );
+  return;
+}
     if (!form.category_id)    { show("warn", "Missing Field", "Please select a category."); return; }
     if (!form.subcategory_id) {
 
@@ -968,6 +1420,7 @@ if (
         category_id: form.category_id,
         subcategory_id: form.subcategory_id,
          brand_id: form.brand_id,
+          supplier_id: form.supplier_id, 
         company_id: getCompanyId(),
         price: form.price,
         stock: form.stock,
@@ -1267,7 +1720,7 @@ if (
             {/* ── Basic Info ── */}
             <p className="pf-section">Basic Info</p>
 
-            <div
+           <div
   style={{
     display:"flex",
     alignItems:"center",
@@ -1280,14 +1733,7 @@ if (
     boxShadow:"0 4px 16px rgba(37,99,235,.08)"
   }}
 >
-  <span
-    style={{
-      marginRight:"10px",
-      fontSize:"18px"
-    }}
-  >
-    🏢
-  </span>
+  <span style={{marginRight:"10px",fontSize:"18px"}}>🏢</span>
 
   <select
     value={selectedCompany}
@@ -1302,24 +1748,45 @@ if (
       cursor:"pointer"
     }}
   >
-    <option value="">
-      Select Company
-    </option>
+    <option value="">Select Company</option>
 
-    {companies.map((c) => (
-
-      <option
-        key={c.id}
-        value={c.id}
-      >
+    {companies.map((c)=>(
+      <option key={c.id} value={c.id}>
         {c.company_name}
       </option>
-
     ))}
-
   </select>
+</div>
 
+<div className="pf-field">
+  <label className="pf-label">
+    Supplier <span style={{color:"#ef4444"}}>*</span>
+  </label>
 
+  <div className="pf-select-wrap pf-input-wrap">
+    <span className="pf-input-icon">🚚</span>
+
+    <select
+      className="pf-select"
+      value={form.supplier_id}
+      onChange={(e)=>set("supplier_id",e.target.value)}
+      disabled={!selectedCompany}
+    >
+      <option value="">
+        {selectedCompany
+          ? "Select Supplier"
+          : "Select Company First"}
+      </option>
+
+      {suppliers.map((s)=>(
+        <option key={s.id} value={s.id}>
+          {s.supplier_name}
+        </option>
+      ))}
+    </select>
+
+    <span className="pf-select-arrow">▾</span>
+  </div>
 </div>
 
             <div className="pf-field">
@@ -1491,6 +1958,8 @@ if (
   </div>
 
 </div>
+
+
 
             {/* ── Pricing & Stock ── */}
             <p className="pf-section" style={{marginTop:"1.25rem"}}>Pricing & Stock</p>

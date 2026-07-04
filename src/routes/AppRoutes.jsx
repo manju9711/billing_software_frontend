@@ -128,9 +128,24 @@ export default function AppRoutes() {
             <Route path="/supplier/add" element={<SupplierForm />} />
           <Route path="/supplier" element={<SupplierList/>} />
           <Route path="/supplier/edit/:id" element={<EditSupplier/>} />
-          <Route path="/supplier/:supplierId/add-product" element={<SupplierAddProductForm />} />
+          {/* <Route path="/supplier/:supplierId/add-product" element={<SupplierAddProductForm />} />
             <Route path="/supplier/:supplierId/products" element={<SupplierProductList/>} />
-          <Route path="/supplier/:supplierId/products/edit/:id" element={<SupplierEditProduct/>} />
+          <Route path="/supplier/:supplierId/products/edit/:id" element={<SupplierEditProduct/>} /> */}
+
+          <Route
+  path="/supplier/:supplierId/products"
+  element={<SupplierProductList />}
+/>
+
+<Route
+  path="/supplier/:supplierId/add-product"
+  element={<SupplierAddProductForm />}
+/>
+
+<Route
+  path="/supplier/:supplierId/products/edit/:id"
+  element={<SupplierEditProduct />}
+/>
 
 
 <Route path="/tax" element={<TaxList />} />

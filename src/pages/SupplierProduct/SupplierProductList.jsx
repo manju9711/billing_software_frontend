@@ -169,7 +169,7 @@ export default function SupplierProductList() {
                       <td className="center">
                         <button
                           className="pl-btn-edit"
-                          onClick={() => navigate(`/suppliers/${supplierId}/products/edit/${p.id}`, { state: { supplierName } })}
+                          onClick={() => navigate(`/supplier/${supplierId}/products/edit/${p.id}`, { state: { supplierName } })}
                         >
                           <Pencil size={15} />
                         </button>

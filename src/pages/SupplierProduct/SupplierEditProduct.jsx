@@ -3,7 +3,45 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import api from "../../services/api";
 import Barcode from "react-barcode";
 
-/* reuse the same useToast / ToastPortal from EditProduct.jsx (ep- classes) */
+
+function useToast() {
+  const [toasts, setToasts] = useState([]);
+
+  const show = (type, title, msg) => {
+    const id = Date.now();
+    setToasts((p) => [...p, { id, type, title, msg }]);
+
+    setTimeout(() => {
+      setToasts((p) => p.filter((t) => t.id !== id));
+    }, 3000);
+  };
+
+  const remove = (id) => {
+    setToasts((p) => p.filter((t) => t.id !== id));
+  };
+
+  return { toasts, show, remove };
+}
+
+function ToastPortal({ toasts, remove }) {
+  return (
+    <div style={{ position:"fixed", top:22, right:22, zIndex:9999, display:"flex", flexDirection:"column", gap:9, pointerEvents:"none" }}>
+      {toasts.map(t => (
+        <div key={t.id} className={`ep-toast ep-toast-${t.type}`}>
+          <div className="ep-toast-icon">{t.type==="success"?"✓":t.type==="error"?"✕":"!"}</div>
+          <div className="ep-toast-body">
+            <p className="ep-toast-title">{t.title}</p>
+            {t.msg && <p className="ep-toast-msg">{t.msg}</p>}
+          </div>
+          <button className="ep-toast-x" style={{pointerEvents:"auto"}} onClick={()=>remove(t.id)}>✕</button>
+          <div className="ep-toast-bar" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 
 export default function SupplierEditProduct() {
   const { id, supplierId } = useParams();
@@ -11,6 +49,8 @@ export default function SupplierEditProduct() {
   const location = useLocation();
   const supplierName = location.state?.supplierName || "";
 
+  
+  const { toasts, show, remove } = useToast();
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("");
   const [categories, setCategories] = useState([]);
@@ -90,6 +130,55 @@ export default function SupplierEditProduct() {
   };
 
   useEffect(() => { fetchProduct(); }, [id]);
+
+  const handleCompanyChange = async (e) => {
+
+  const companyId = e.target.value;
+
+  setSelectedCompany(companyId);
+
+  setForm((prev) => ({
+    ...prev,
+    category_id: "",
+    subcategory_id: "",
+    brand_id: ""
+  }));
+
+  setSubCategories([]);
+  setBrands([]);
+
+  await fetchCategories(companyId);
+  await fetchCompanyGST(companyId);
+
+};
+
+useEffect(() => {
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user?.id) return;
+
+  loadCompanies(user.id);
+
+}, []);
+
+const loadCompanies = async (admin_id) => {
+
+  try {
+
+    const res = await api.get(
+      `/company/get_companies_by_admin.php?admin_id=${admin_id}`
+    );
+
+    if (res.data.status) {
+      setCompanies(res.data.data);
+    }
+
+  } catch (err) {
+    console.log(err);
+  }
+
+};
 
   const generateBarcode = () => {
     const code = "PRD" + Math.floor(100000 + Math.random() * 900000);
@@ -687,7 +776,9 @@ export default function SupplierEditProduct() {
                  : <>💾 Update Product</>
                }
              </button>
-             <button className="ep-cancel" onClick={() => navigate("/products")}>
+             <button className="ep-cancel" onClick={() => navigate(`/supplier/${supplierId}/products`, {
+  state: { supplierName }
+})}>
                Cancel
              </button>
  
