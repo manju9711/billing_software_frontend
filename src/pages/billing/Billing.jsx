@@ -1825,16 +1825,43 @@ const GLOBAL_CSS = `
     font-family:'Outfit',sans-serif; transition:all .25s;
   }
 
+  // .bill-type-dropdown {
+  //   width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:12px;
+  //   background:#f8faff; color:#1e293b; font-size:13.5px; font-weight:600;
+  //   font-family:'Outfit',sans-serif; outline:none; cursor:pointer;
+  //   transition:all .2s; appearance:none;
+  //   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  //   background-repeat:no-repeat; background-position:right 12px center;
+  //   padding-right:36px;
+  // }
+  // .bill-type-dropdown:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+
+
   .bill-type-dropdown {
-    width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:12px;
-    background:#f8faff; color:#1e293b; font-size:13.5px; font-weight:600;
-    font-family:'Outfit',sans-serif; outline:none; cursor:pointer;
-    transition:all .2s; appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right 12px center;
-    padding-right:36px;
-  }
-  .bill-type-dropdown:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  width: 100%;
+  height: 44px;
+  padding: 0 40px 0 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "Outfit", sans-serif;
+  outline: none;
+  cursor: pointer;
+  transition: all .2s ease;
+  appearance: none;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+.bill-type-dropdown:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+}
 
   .pay-method-btn {
     padding:11px 8px; border-radius:12px; cursor:pointer;
@@ -2004,20 +2031,40 @@ const pendingBalance =
   received < cashNeeded
     ? cashNeeded - received
     : 0;
-
-  /* ── If credit_enabled becomes "0", switch away from credit ── */
-  useEffect(() => {
-    if (customer.credit_enabled !== "1" && paymentMethod === "credit") {
-      setPaymentMethod("cash");
-    }
-  }, [customer.credit_enabled]);
+useEffect(() => {
+  if (paymentMethod === "credit") {
+    // Credit selected — default to Grand Total, but stays editable
+    setPayment(p => ({
+      ...p,
+      received: (p.received === 0 || p.received === "") ? total : p.received
+    }));
+  } else {
+    // Cash / Online / UPI — always force Grand Total, non-editable
+    setPayment(p => ({ ...p, received: effectiveTotal }));
+  }
+}, [paymentMethod, total, effectiveTotal]);
+  // /* ── If credit_enabled becomes "0", switch away from credit ── */
+  // useEffect(() => {
+  //   if (customer.credit_enabled !== "1" && paymentMethod === "credit") {
+  //     setPaymentMethod("cash");
+  //   }
+  // }, [customer.credit_enabled]);
 
   /* Auto-fill received amount when total changes (only for non-credit) */
-  useEffect(() => {
-    if (paymentMethod !== "credit") {
-      setPayment(p => ({ ...p, received: effectiveTotal }));
-    }
-  }, [total, paymentMethod, advanceUsed]);
+  // useEffect(() => {
+  //   if (paymentMethod !== "credit") {
+  //     setPayment(p => ({ ...p, received: effectiveTotal }));
+  //   }
+  // }, [total, paymentMethod, advanceUsed]);
+
+useEffect(() => {
+  if (paymentMethod !== "credit") {
+    setPayment(p => ({
+      ...p,
+      received: customer.credit_enabled === "1" ? p.received : effectiveTotal
+    }));
+  }
+}, [total, paymentMethod, advanceUsed, customer.credit_enabled]);
 
   /* ── Global CSS ── */
   useEffect(() => {
@@ -2450,7 +2497,7 @@ if (!selectedCompany) {
       {/* ── Top Header ── */}
       <div style={{
         background:"linear-gradient(135deg,#312e81 0%,#4338ca 50%,#6366f1 100%)",
-        padding:"22px 32px 60px", position:"relative", overflow:"hidden",
+        padding:"18px 32px 35px", position:"relative", overflow:"hidden",
       }}>
         {[{s:200,t:-60,r:-50,op:.08},{s:120,t:10,r:160,op:.06},{s:70,b:-20,l:80,op:.07}].map((c,i) => (
           <div key={i} style={{
@@ -2461,16 +2508,16 @@ if (!selectedCompany) {
         ))}
         <div style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:14 }}>
           <div>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"#fff", fontFamily:"'Syne',sans-serif", letterSpacing:"-.02em" }}>
+            <h1 style={{ fontSize:24, fontWeight:900, color:"#fff", fontFamily:"'Syne',sans-serif", letterSpacing:"-.02em" }}>
               Invoice Billing
             </h1>
-            <p style={{ fontSize:13.5, color:"rgba(255,255,255,.65)", marginTop:3, fontWeight:400 }}>
+            <p style={{ fontSize:13.5, color:"rgba(255,255,255,.65)", marginTop:1, fontWeight:400 }}>
               Create and manage customer invoices
             </p>
           </div>
 
           {/* ── Bill Type Dropdown ── */}
-          <div style={{ position:"relative", minWidth:180 }}>
+          {/* <div style={{ position:"relative", minWidth:180 }}>
            <label
   style={{
     fontSize:10.5,
@@ -2557,12 +2604,120 @@ if (!selectedCompany) {
             }}>
               {billType === "gst_bill" ? <><IconGST/> GST will be calculated</> : <>No GST on this bill</>}
             </div>
-          </div>
+          </div> */}
+        <div
+  style={{
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "20px",
+    flexWrap: "nowrap",
+  }}
+>
+  {/* Company */}
+  <div
+    style={{
+      width: 240,
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    <label
+      style={{
+        fontSize: 11,
+        fontWeight: 700,
+        color: "rgba(255,255,255,.75)",
+        letterSpacing: ".08em",
+        textTransform: "uppercase",
+        marginBottom: 8,
+      }}
+    >
+      Company
+    </label>
+
+    <select
+      className="bill-type-dropdown"
+      value={selectedCompany}
+      onChange={(e) => {
+        setSelectedCompany(e.target.value);
+        localStorage.setItem("selected_company_id", e.target.value);
+      }}
+      style={{
+        height: 44,
+        background: "#fff",
+        borderRadius: 12,
+      }}
+    >
+      <option value="">Select Company</option>
+
+      {companies.map((c) => (
+        <option key={c.id} value={c.id}>
+          {c.company_name}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Bill Type */}
+  <div
+    style={{
+      width: 215,
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    <label
+      style={{
+        fontSize: 11,
+        fontWeight: 700,
+        color: "rgba(255,255,255,.75)",
+        letterSpacing: ".08em",
+        textTransform: "uppercase",
+        marginBottom: 8,
+      }}
+    >
+      Bill Type
+    </label>
+
+    <select
+      className="bill-type-dropdown"
+      value={billType}
+      onChange={(e) => setBillType(e.target.value)}
+      style={{
+        height: 44,
+        background: "#fff",
+        borderRadius: 12,
+      }}
+    >
+      <option value="cash_bill">Cash Bill</option>
+      <option value="gst_bill">GST Bill</option>
+    </select>
+
+    <div
+      style={{
+        marginTop: 8,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "fit-content",
+        padding: "4px 12px",
+        borderRadius: 20,
+        background: "rgba(255,255,255,.15)",
+        color: "rgba(255,255,255,.9)",
+        fontSize: 11,
+        fontWeight: 600,
+      }}
+    >
+      {billType === "gst_bill"
+        ? "GST will be calculated"
+        : "No GST on this bill"}
+    </div>
+  </div>
+</div>
         </div>
       </div>
 
       {/* ── Content ── */}
-      <div style={{ padding:"0 28px 40px", marginTop:-38 }}>
+      <div style={{ padding:"0 28px 40px", marginTop:-20 }}>
 
         {/* ══════════════════════════════════════════════
             CUSTOMER CARD
@@ -3155,200 +3310,127 @@ if (!selectedCompany) {
               </div>
             )}
 
-            {/* Amount Received — hidden for credit */}
-            {paymentMethod !== "credit" && (
-              <>
-                <label style={{ fontSize:11, fontWeight:600, color:"#6366f1", letterSpacing:".08em", textTransform:"uppercase", display:"block", marginBottom:6 }}>
-                  {advanceUsed > 0
-                    ? `Cash to Collect (₹${effectiveTotal > 0 ? effectiveTotal.toFixed(2) : "0.00"} needed)`
-                    : "Amount Received (₹)"
-                  }
-                </label>
-              <input
+           {/* ── Amount Received — always visible, editable only for credit-enabled customers ── */}
+<label style={{ fontSize:11, fontWeight:600, color:"#6366f1", letterSpacing:".08em", textTransform:"uppercase", display:"block", marginBottom:6 }}>
+  {advanceUsed > 0 && paymentMethod !== "credit"
+    ? `Cash to Collect (₹${effectiveTotal > 0 ? effectiveTotal.toFixed(2) : "0.00"} needed)`
+    : "Amount Received (₹)"
+  }
+</label>
+
+<input
   type="number"
   className="bill-input"
   placeholder={`₹${effectiveTotal > 0 ? effectiveTotal.toFixed(2) : "0.00"}`}
   value={payment.received}
-  readOnly
-  onWheel={e => e.target.blur()}
+  readOnly={paymentMethod !== "credit"}
+  onChange={(e) => {
+    if (paymentMethod === "credit") {
+      setPayment({
+        ...payment,
+        received: e.target.value
+      });
+    }
+  }}
+  onWheel={(e) => e.target.blur()}
   style={{
-    fontSize:16,
-    fontWeight:700,
-    marginBottom:12,
-    background:"#f8fafc",
-    cursor:"not-allowed"
+    fontSize: 16,
+    fontWeight: 700,
+    marginBottom: 12,
+    background: paymentMethod === "credit" ? "#fff" : "#f8fafc",
+    cursor: paymentMethod === "credit" ? "text" : "not-allowed"
   }}
 />
+{/* ── Rest of the payment breakdown — only meaningful for non-credit methods ── */}
+{paymentMethod !== "credit" && (
+  <>
+    {customer.id && (pendingAmount > 0 || advanceAvailable > 0) && (
+      <div style={{
+        borderRadius:12, overflow:"hidden",
+        border:"1.5px solid #e2e8f0",
+        marginBottom:12,
+        animation:"slideDown .25s ease both",
+      }}>
+        <div style={{
+          background:"#f8faff", padding:"8px 14px",
+          borderBottom:"1px solid #e2e8f0",
+          fontSize:10.5, fontWeight:700, color:"#6366f1",
+          letterSpacing:".08em", textTransform:"uppercase",
+        }}>
+          Customer Account Summary
+        </div>
 
-                {/* ══════════════════════════════════════════════
-                    CUSTOMER PENDING & ADVANCE INFO BOX
-                    shown below received input when customer selected
-                ══════════════════════════════════════════════ */}
-                {customer.id && (pendingAmount > 0 || advanceAvailable > 0) && (
-                  <div style={{
-                    borderRadius:12, overflow:"hidden",
-                    border:"1.5px solid #e2e8f0",
-                    marginBottom:12,
-                    animation:"slideDown .25s ease both",
-                  }}>
-                    {/* Header */}
-                    <div style={{
-                      background:"#f8faff", padding:"8px 14px",
-                      borderBottom:"1px solid #e2e8f0",
-                      fontSize:10.5, fontWeight:700, color:"#6366f1",
-                      letterSpacing:".08em", textTransform:"uppercase",
-                    }}>
-                      Customer Account Summary
-                    </div>
-
-                    <div style={{ display:"grid", gridTemplateColumns: pendingAmount > 0 && advanceAvailable > 0 ? "1fr 1fr" : "1fr" }}>
-                      {/* Pending Amount */}
-                      {pendingAmount > 0 && (
-                        <div style={{
-                          padding:"12px 14px",
-                          background:"#fef2f2",
-                          borderRight: advanceAvailable > 0 ? "1px solid #fecaca" : "none",
-                        }}>
-                          <div style={{ fontSize:11, color:"#ef4444", fontWeight:600, marginBottom:4 }}>
-                            ⚠️ Previous Pending
-                          </div>
-                          <div style={{ fontSize:18, fontWeight:900, color:"#dc2626" }}>
-                            ₹{pendingAmount.toFixed(2)}
-                          </div>
-                          <div style={{ fontSize:10.5, color:"#f87171", marginTop:3 }}>
-                            Outstanding from past bills
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Advance / Extra Balance */}
-                      {advanceAvailable > 0 && (
-                        <div style={{
-                          padding:"12px 14px",
-                          background:"#f0fdf4",
-                        }}>
-                          <div style={{ fontSize:11, color:"#059669", fontWeight:600, marginBottom:4 }}>
-                            💰 Advance Balance
-                          </div>
-                          <div style={{ fontSize:18, fontWeight:900, color:"#059669" }}>
-                            ₹{advanceAvailable.toFixed(2)}
-                          </div>
-                          <div style={{ fontSize:10.5, color:"#6ee7b7", marginTop:3 }}>
-                            {advanceUsed > 0
-                              ? `₹${advanceUsed.toFixed(2)} will be applied`
-                              : "Available to apply"
-                            }
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-              <div
-  style={{
-    background:
-      extraAmount > 0
-        ? "#f0fdf4"
-        : pendingBalance > 0
-        ? "#fef2f2"
-        : "#eef2ff",
-
-    border:
-      extraAmount > 0
-        ? "1.5px solid #bbf7d0"
-        : pendingBalance > 0
-        ? "1.5px solid #fecaca"
-        : "1.5px solid #c7d2fe",
-
-    borderRadius: 12,
-    padding: "12px 14px",
-    marginBottom: 14,
-  }}
->
-  {extraAmount > 0 ? (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <span
-        style={{
-          fontWeight: 700,
-          color: "#059669",
-          fontSize: 14,
-        }}
-      >
-        💰 Extra Amount
-      </span>
-
-      <span
-        style={{
-          fontWeight: 900,
-          color: "#059669",
-          fontSize: 18,
-        }}
-      >
-        ₹{extraAmount.toFixed(2)}
-      </span>
-    </div>
-  ) : pendingBalance > 0 ? (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <span
-        style={{
-          fontWeight: 700,
-          color: "#dc2626",
-          fontSize: 14,
-        }}
-      >
-        ⚠️ Pending Amount
-      </span>
-
-      <span
-        style={{
-          fontWeight: 900,
-          color: "#dc2626",
-          fontSize: 18,
-        }}
-      >
-        ₹{pendingBalance.toFixed(2)}
-      </span>
-    </div>
-  ) : (
-    <div
-      style={{
-        textAlign: "center",
-        fontWeight: 700,
-        color: "#4338ca",
-      }}
-    >
-      Fully Paid ✓
-    </div>
-  )}
-</div>
-              </>
-            )}
-
-            {/* Credit outstanding */}
-            {paymentMethod === "credit" && (
-              <div style={{
-                display:"flex", justifyContent:"space-between", alignItems:"center",
-                padding:"12px 16px", borderRadius:12, marginBottom:20,
-                background:"#fef2f2", border:"1.5px solid #fecaca",
-              }}>
-                <span style={{ fontWeight:700, color:"#dc2626", fontSize:14 }}>Outstanding Amount</span>
-                <span style={{ fontWeight:900, fontSize:16, color:"#dc2626" }}>₹{total.toFixed(2)}</span>
+        <div style={{ display:"grid", gridTemplateColumns: pendingAmount > 0 && advanceAvailable > 0 ? "1fr 1fr" : "1fr" }}>
+          {pendingAmount > 0 && (
+            <div style={{
+              padding:"12px 14px",
+              background:"#fef2f2",
+              borderRight: advanceAvailable > 0 ? "1px solid #fecaca" : "none",
+            }}>
+              <div style={{ fontSize:11, color:"#ef4444", fontWeight:600, marginBottom:4 }}>
+                ⚠️ Previous Pending
               </div>
-            )}
+              <div style={{ fontSize:18, fontWeight:900, color:"#dc2626" }}>
+                ₹{pendingAmount.toFixed(2)}
+              </div>
+              <div style={{ fontSize:10.5, color:"#f87171", marginTop:3 }}>
+                Outstanding from past bills
+              </div>
+            </div>
+          )}
 
+          {advanceAvailable > 0 && (
+            <div style={{ padding:"12px 14px", background:"#f0fdf4" }}>
+              <div style={{ fontSize:11, color:"#059669", fontWeight:600, marginBottom:4 }}>
+                💰 Advance Balance
+              </div>
+              <div style={{ fontSize:18, fontWeight:900, color:"#059669" }}>
+                ₹{advanceAvailable.toFixed(2)}
+              </div>
+              <div style={{ fontSize:10.5, color:"#6ee7b7", marginTop:3 }}>
+                {advanceUsed > 0 ? `₹${advanceUsed.toFixed(2)} will be applied` : "Available to apply"}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    <div style={{
+      background: extraAmount > 0 ? "#f0fdf4" : pendingBalance > 0 ? "#fef2f2" : "#eef2ff",
+      border: extraAmount > 0 ? "1.5px solid #bbf7d0" : pendingBalance > 0 ? "1.5px solid #fecaca" : "1.5px solid #c7d2fe",
+      borderRadius: 12, padding: "12px 14px", marginBottom: 14,
+    }}>
+      {extraAmount > 0 ? (
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <span style={{ fontWeight:700, color:"#059669", fontSize:14 }}>💰 Extra Amount</span>
+          <span style={{ fontWeight:900, color:"#059669", fontSize:18 }}>₹{extraAmount.toFixed(2)}</span>
+        </div>
+      ) : pendingBalance > 0 ? (
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <span style={{ fontWeight:700, color:"#dc2626", fontSize:14 }}>⚠️ Pending Amount</span>
+          <span style={{ fontWeight:900, color:"#dc2626", fontSize:18 }}>₹{pendingBalance.toFixed(2)}</span>
+        </div>
+      ) : (
+        <div style={{ textAlign:"center", fontWeight:700, color:"#4338ca" }}>
+          Fully Paid ✓
+        </div>
+      )}
+    </div>
+  </>
+)}
+
+{/* Credit outstanding — still shown for credit method */}
+{paymentMethod === "credit" && (
+  <div style={{
+    display:"flex", justifyContent:"space-between", alignItems:"center",
+    padding:"12px 16px", borderRadius:12, marginBottom:20,
+    background:"#fef2f2", border:"1.5px solid #fecaca",
+  }}>
+    <span style={{ fontWeight:700, color:"#dc2626", fontSize:14 }}>Outstanding Amount</span>
+    <span style={{ fontWeight:900, fontSize:16, color:"#dc2626" }}>₹{total.toFixed(2)}</span>
+  </div>
+)}
             {/* Generate Button */}
             <button className="gen-btn" onClick={handleGenerate}  disabled={
    generating ||

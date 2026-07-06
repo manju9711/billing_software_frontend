@@ -22,6 +22,7 @@ import {
   ClipboardList,
   Building,
 } from "lucide-react";
+import api from "../services/api"; 
 
 export default function MainLayout() {
   const navigate = useNavigate();
@@ -33,11 +34,16 @@ export default function MainLayout() {
   const role = user?.role;
 
   // 🔥 LOGOUT
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
-
+const handleLogout = async () => {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  try {
+    await api.post("/auth/logout.php", { id: user.id, role: user.role });
+  } catch (err) {
+    console.error(err);
+  }
+  localStorage.clear();
+  navigate("/");
+};
   // 🔥 ROLE BASED MENU
   const menuItems = [
     // COMMON

@@ -1090,6 +1090,24 @@ const [suppliers, setSuppliers] = useState([]);
 
 
 
+// const fetchSuppliers = async (company_id) => {
+//   if (!company_id) {
+//     setSuppliers([]);
+//     return;
+//   }
+//   try {
+//     const res = await api.get(`/supplier/get_all.php?company_id=${company_id}`);
+//     if (res.data.status) {
+//       setSuppliers(res.data.data);
+//     } else {
+//       setSuppliers([]);
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     setSuppliers([]);
+//   }
+// };
+
 const fetchSuppliers = async (company_id) => {
   if (!company_id) {
     setSuppliers([]);
@@ -1098,7 +1116,9 @@ const fetchSuppliers = async (company_id) => {
   try {
     const res = await api.get(`/supplier/get_all.php?company_id=${company_id}`);
     if (res.data.status) {
-      setSuppliers(res.data.data);
+      // Only show active suppliers in the dropdown
+      const activeSuppliers = res.data.data.filter(s => s.status === "active");
+      setSuppliers(activeSuppliers);
     } else {
       setSuppliers([]);
     }

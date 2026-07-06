@@ -9,37 +9,45 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+   const [toast, setToast] = useState(null); 
 
-  const handleLogin = async () => {
-    setIsLoading(true);
-    try {
-      const res = await api.post("/auth/login.php", { email, password });
-      if (res.data.status === true) {
-        const role = res.data.role;
-        const userData = res.data.data;
-        const user = {
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          role: role,
-          company_id: userData.company_id || null,
-          admin_id: userData.admin_id || null,
-        };
-
-        localStorage.setItem("user", JSON.stringify(user));
-        console.log("LOGIN USER 👉", user);
-        if (role === "superadmin") navigate("/company");
-        else navigate("/dashboard");
-      } else {
-        alert(res.data.message);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Server error");
-    } finally {
-      setIsLoading(false);
-    }
+   const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3500);
   };
+
+
+ const handleLogin = async () => {
+  setIsLoading(true);
+  try {
+    const res = await api.post("/auth/login.php", { email, password });
+    if (res.data.status === true) {
+      const role = res.data.role;
+      const userData = res.data.data;
+      const user = {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: role,
+        company_id: userData.company_id || null,
+        admin_id: userData.admin_id || null,
+      };
+
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("session_token", res.data.token);   // 👈 add this
+
+      if (role === "superadmin") navigate("/company");
+      else navigate("/dashboard");
+    } else {
+      showToast(res.data.message);   
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("Server error");  
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div
@@ -54,6 +62,45 @@ export default function Login() {
         overflow: "hidden",
       }}
     >
+
+      {/* ── Toast ── */}
+{toast && (
+  <motion.div
+    initial={{ opacity: 0, x: 60 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: 60 }}
+    style={{
+      position: "fixed",
+      top: 24,
+      right: 24,              // 👈 left/transform மாத்தி இதை add பண்ணு
+      zIndex: 9999,
+      background: "linear-gradient(135deg,#dc2626,#ef4444)",
+      color: "#fff",
+      padding: "13px 20px",
+      borderRadius: 14,
+      boxShadow: "0 10px 30px rgba(0,0,0,.25)",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      fontWeight: 600,
+      fontSize: 13.5,
+      maxWidth: 360,
+      textAlign: "left",       // 👈 center இல்லாம left ஆக்கினேன், right-side toast-க்கு இது நல்லா தெரியும்
+    }}
+  >
+    <span style={{
+      width: 22, height: 22, borderRadius: 7,
+      background: "rgba(255,255,255,.2)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: 12, fontWeight: 700, flexShrink: 0,
+    }}>
+      ✕
+    </span>
+    <span>{toast}</span>
+  </motion.div>
+)}
+
+      
       {/* ── Background: rice field image via CSS ── */}
       <div
         style={{

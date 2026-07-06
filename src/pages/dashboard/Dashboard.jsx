@@ -1064,10 +1064,16 @@ useEffect(()=>{
                 gap: 10,
                 borderTop: "1px solid #f4f4fa",
             }}
-            onClick={() => {
-                localStorage.clear();
-                navigate("/");
-            }}
+          onClick={async () => {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  try {
+    await api.post("/auth/logout.php", { id: user.id, role: user.role });
+  } catch (err) {
+    console.error(err);
+  }
+  localStorage.clear();
+  navigate("/");
+}}
         >
             <div style={{
                 width: 30, height: 30, borderRadius: 9,
@@ -1077,7 +1083,7 @@ useEffect(()=>{
             }}>
                 <LogOut size={14} color="#dc2626" />
             </div>
-            <span style={{ fontSize: 13.5, fontWeight: 700, color: "#dc2626" }}>
+            <span  style={{ fontSize: 13.5, fontWeight: 700, color: "#dc2626" }}>
                 Logout
             </span>
         </div>
