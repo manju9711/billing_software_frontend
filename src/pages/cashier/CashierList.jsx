@@ -444,24 +444,24 @@
 
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import TablePagination from "../../components/TablePagination";
 import {
   Pencil,
   Search,
   UserPlus,
   Users,
-  ChevronLeft,
-  ChevronRight
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 
-const PER_PAGE = 10;
+const DEFAULT_PAGE_SIZE = 10;
 
 export default function CashierList() {
 
   const [cashiers, setCashiers] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const navigate = useNavigate();
 const MAX_CASHIERS = 3;
@@ -561,14 +561,14 @@ const isLimitReached =
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filtered.length / PER_PAGE)
+    Math.ceil(filtered.length / pageSize)
   );
 
   const safePage = Math.min(page, totalPages);
 
   const paginated = filtered.slice(
-    (safePage - 1) * PER_PAGE,
-    safePage * PER_PAGE
+    (safePage - 1) * pageSize,
+    safePage * pageSize
   );
 
   const handleSearch = (val) => {
@@ -576,6 +576,11 @@ const isLimitReached =
     setSearch(val);
     setPage(1);
 
+  };
+
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setPage(1);
   };
 
   const getInitials = (name) =>
@@ -1025,6 +1030,18 @@ const isLimitReached =
         {/* TABLE */}
 
         <div className="cl-card">
+          <div style={{ padding: "16px 20px 0" }}>
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setPage}
+              itemLabel="cashiers"
+              position="top"
+            />
+          </div>
 
           <div className="cl-thead">
 
@@ -1195,77 +1212,16 @@ const isLimitReached =
 
           {/* PAGINATION */}
 
-          {filtered.length > PER_PAGE && (
-
-            <div className="cl-pagination">
-
-              <span>
-
-                Showing
-                {" "}
-                <b>
-                  {(safePage - 1)
-                  * PER_PAGE + 1}
-                  –
-                  {
-                    Math.min(
-                      safePage * PER_PAGE,
-                      filtered.length
-                    )
-                  }
-                </b>
-
-              </span>
-
-              <div className="cl-page-btns">
-
-                <button
-                  className="cl-page-nav"
-                  disabled={safePage === 1}
-                  onClick={() =>
-                    setPage(p => p - 1)
-                  }
-                >
-                  <ChevronLeft size={15} />
-                </button>
-
-                {Array.from(
-                  { length: totalPages },
-                  (_, i) => i + 1
-                ).map((item) => (
-
-                  <button
-                    key={item}
-                    className={`cl-page-num ${
-                      item === safePage
-                        ? "active"
-                        : ""
-                    }`}
-                    onClick={() =>
-                      setPage(item)
-                    }
-                  >
-                    {item}
-                  </button>
-
-                ))}
-
-                <button
-                  className="cl-page-nav"
-                  disabled={
-                    safePage === totalPages
-                  }
-                  onClick={() =>
-                    setPage(p => p + 1)
-                  }
-                >
-                  <ChevronRight size={15} />
-                </button>
-
-              </div>
-
-            </div>
-
+          {filtered.length > 0 && (
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setPage}
+              itemLabel="cashiers"
+            />
           )}
 
         </div>

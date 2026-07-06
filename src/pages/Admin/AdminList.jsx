@@ -1,15 +1,17 @@
     import { useEffect, useState } from "react";
     import { useNavigate } from "react-router-dom";
     import api from "../../services/api";
-    import { Pencil, ShieldCheck, ChevronLeft, ChevronRight, Search } from "lucide-react";
+    import TablePagination from "../../components/TablePagination";
+    import { Pencil, ShieldCheck, Search } from "lucide-react";
 
-    const ITEMS_PER_PAGE = 5;
+    const DEFAULT_PAGE_SIZE = 10;
 
     export default function AdminList() {
     const navigate = useNavigate();
     const [admins, setAdmins] = useState([]);
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
  const user = JSON.parse(
   localStorage.getItem("user")
@@ -56,15 +58,20 @@ const company_id = user?.company_id || 0;
         a.email?.toLowerCase().includes(search.toLowerCase())
     );
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
     const safePage = Math.min(currentPage, totalPages);
     const paginated = filtered.slice(
-        (safePage - 1) * ITEMS_PER_PAGE,
-        safePage * ITEMS_PER_PAGE
+        (safePage - 1) * pageSize,
+        safePage * pageSize
     );
 
     const handleSearch = (val) => {
         setSearch(val);
+        setCurrentPage(1);
+    };
+
+    const handlePageSizeChange = (e) => {
+        setPageSize(Number(e.target.value));
         setCurrentPage(1);
     };
 
@@ -276,6 +283,18 @@ const company_id = user?.company_id || 0;
 
             {/* Table card */}
             <div className="al-card">
+            <div style={{ padding: "16px 20px 0" }}>
+                <TablePagination
+                currentPage={safePage}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                pageSize={pageSize}
+                onPageSizeChange={handlePageSizeChange}
+                onPageChange={setCurrentPage}
+                itemLabel="admins"
+                position="top"
+                />
+            </div>
             <table className="al-table">
                 <thead>
                 <tr>
@@ -310,7 +329,7 @@ const company_id = user?.company_id || 0;
                         {/* Serial */}
                         <td className="al-td">
                         <span className="al-badge al-badge-gray">
-                            {(safePage - 1) * ITEMS_PER_PAGE + idx + 1}
+                            {(safePage - 1) * pageSize + idx + 1}
                         </span>
                         </td>
 
@@ -368,65 +387,16 @@ const company_id = user?.company_id || 0;
             </table>
 
             {/* Pagination */}
-            {filtered.length > ITEMS_PER_PAGE && (
-                <div className="al-pagination">
-                <p className="al-page-info">
-                    Showing{" "}
-                    <strong>
-                    {(safePage - 1) * ITEMS_PER_PAGE + 1}–
-                    {Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
-                    </strong>{" "}
-                    of <strong>{filtered.length}</strong> admins
-                </p>
-                <div className="al-page-btns">
-                    <button
-                    className="al-page-btn"
-                    disabled={safePage === 1}
-                    onClick={() => setCurrentPage((p) => p - 1)}
-                    >
-                    <ChevronLeft size={16} />
-                    </button>
-
-                    {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(
-                        (p) =>
-                        p === 1 ||
-                        p === totalPages ||
-                        Math.abs(p - safePage) <= 1
-                    )
-                    .reduce((acc, p, i, arr) => {
-                        if (i > 0 && arr[i - 1] !== p - 1) acc.push("...");
-                        acc.push(p);
-                        return acc;
-                    }, [])
-                    .map((item, i) =>
-                        item === "..." ? (
-                        <span
-                            key={`dots-${i}`}
-                            style={{ padding: "0 4px", color: "#94a3b8", fontSize: 13 }}
-                        >
-                            …
-                        </span>
-                        ) : (
-                        <button
-                            key={item}
-                            className={`al-page-btn ${safePage === item ? "active" : ""}`}
-                            onClick={() => setCurrentPage(item)}
-                        >
-                            {item}
-                        </button>
-                        )
-                    )}
-
-                    <button
-                    className="al-page-btn"
-                    disabled={safePage === totalPages}
-                    onClick={() => setCurrentPage((p) => p + 1)}
-                    >
-                    <ChevronRight size={16} />
-                    </button>
-                </div>
-                </div>
+            {filtered.length > 0 && (
+                <TablePagination
+                currentPage={safePage}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                pageSize={pageSize}
+                onPageSizeChange={handlePageSizeChange}
+                onPageChange={setCurrentPage}
+                itemLabel="admins"
+                />
             )}
             </div>
 
