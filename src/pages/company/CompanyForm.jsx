@@ -264,57 +264,76 @@ if (form.gstin.trim() && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]
   });
 
   const handleSubmit = async () => {
+  if (loading) return;
 
-    
-    const e = validate();
-    setErrors(e);
+  const e = validate();
+  setErrors(e);
+  if (Object.keys(e).length > 0) return;
 
-    if (Object.keys(e).length > 0) {
-      return;
+  setLoading(true);
+  const user = JSON.parse(localStorage.getItem("user"));
+  try {
+    let base64Logo = "";
+    if (form.logo) base64Logo = await convertToBase64(form.logo);
+
+    const payload = {
+      admin_id: user?.id || 0,
+      company_name: form.name,
+      company_code: form.code,
+      company_address: form.address,
+      gstin: form.gstin,
+      gst_type: form.gst_type,
+      phone: form.phone,
+      logo: base64Logo,
+    };
+
+    const res = await api.post("/company/add_company.php", payload);
+
+    // ✅ Company request sent (Admin reached max limit)
+if (res.data.request_sent) {
+
+  toast(res.data.message, "success");
+
+  // Reset form
+  setForm({
+    name: "",
+    code: "",
+    address: "",
+    gstin: "",
+    gst_type: "with_gst",
+    phone: "",
+    logo: null,
+  });
+
+  setErrors({});
+
+  if (fileRef.current) {
+    fileRef.current.value = "";
+  }
+
+  setTimeout(() => {
+    navigate("/company");
+  }, 1200);
+
+  return;
+}
+
+    const isSuccess = res.data.status === true || res.data.status === 1 ||
+      res.data.status === "true" || res.data.status === "1" || res.data.status === "success";
+
+    if (isSuccess) {
+      toast("Company & Admin created successfully!", "success");
+      setTimeout(() => navigate("/company"), 1200);
+    } else {
+      toast(res.data.message || res.data.msg || res.data.error || "Something went wrong", "error");
     }
-
-    setLoading(true);
-     const user = JSON.parse(
-    localStorage.getItem("user")
-  );
-    try {
-      let base64Logo = "";
-      if (form.logo) base64Logo = await convertToBase64(form.logo);
-
-      
-
-      const payload = {
-        admin_id: user?.id || 0,
-        company_name: form.name,
-        company_code: form.code,
-        company_address: form.address,
-        gstin: form.gstin,
-        gst_type: form.gst_type,
-        phone: form.phone,
-        logo: base64Logo,
-      };
-
-      const res = await api.post("/company/add_company.php", payload);
-     
-
-
-
-      console.log("API Response:", res.data); // debug log
-
-      const isSuccess = res.data.status === true || res.data.status === 1 || res.data.status === "true" || res.data.status === "1" || res.data.status === "success";
-
-      if (isSuccess) {
-        toast("Company & Admin created successfully!", "success");
-        setTimeout(() => navigate("/company"), 1200);
-      } else {
-        toast(res.data.message || res.data.msg || res.data.error || "Something went wrong", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      toast("Server error. Please try again.", "error");
-    }
+  } catch (err) {
+    console.error(err);
+    toast("Server error. Please try again.", "error");
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   const set = (key, val) => {
     setForm(p => ({ ...p, [key]: val }));
