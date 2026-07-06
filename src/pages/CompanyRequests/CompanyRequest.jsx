@@ -281,6 +281,20 @@ const paginatedRequests = filteredRequests.slice(
             "0 15px 30px rgba(15,23,42,.05)",
         }}
       >
+        {filteredRequests.length > 0 && (
+          <div style={{ padding: "18px 24px 0" }}>
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filteredRequests.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setCurrentPage}
+              itemLabel="requests"
+              position="top"
+            />
+          </div>
+        )}
         {/* HEADER */}
 
         <div
