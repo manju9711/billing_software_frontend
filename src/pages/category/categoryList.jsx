@@ -558,7 +558,7 @@ const paginated = filtered.slice(
 
                 <tr>
                   <td colSpan="4" className="cl-empty">
-                    Loading...
+                    Select a company to view categories
                   </td>
                 </tr>
 
