@@ -594,7 +594,8 @@ import {
 } from "recharts";
 import {
   TrendingUp, Package, AlertTriangle,
-  ShoppingBag, BarChart2, Wallet, Clock, IndianRupee,Bell,ChevronDown
+  ShoppingBag, BarChart2, Wallet, Clock, IndianRupee,Bell,ChevronDown,
+  Lock, LogOut
 } from "lucide-react";
 
 function useStyles() {
@@ -956,7 +957,7 @@ useEffect(()=>{
         <ChevronDown size={16} />
     </button>
 
-    {showProfile &&
+    {/* {showProfile &&
         <div
             style={{
                 position: "absolute",
@@ -992,7 +993,96 @@ useEffect(()=>{
                 🚪 Logout
             </div>
         </div>
-    }
+    } */}
+    {showProfile &&
+    <div
+        style={{
+            position: "absolute",
+            right: 0,
+            top: 50,
+            width: 210,
+            background: "#fff",
+            borderRadius: 14,
+            border: "1.5px solid #eef0ff",
+            boxShadow: "0 12px 32px rgba(30,27,75,.14)",
+            overflow: "hidden",
+            zIndex: 9999,
+            animation: "db-up .18s ease both",
+        }}
+    >
+        {/* User info header */}
+        <div style={{
+            padding: "14px 16px",
+            background: "#fafaff",
+            borderBottom: "1px solid #f1f1f8",
+        }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#1e1b4b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {user.name}
+            </div>
+            <div style={{ fontSize: 11, color: "#9ca3af", fontWeight: 600, textTransform: "capitalize", marginTop: 2 }}>
+                {user.role}
+            </div>
+        </div>
+
+        {(user.role === "admin" || user.role === "cashier") && (
+            <div
+                className="db-row"
+                style={{
+                    padding: "12px 16px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    whiteSpace: "nowrap",
+                }}
+                onClick={() => {
+                    setShowProfile(false);
+                    navigate("/change-password");
+                }}
+            >
+                <div style={{
+                    width: 30, height: 30, borderRadius: 9,
+                    background: "#eef2ff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                }}>
+                    <Lock size={14} color="#4338ca" />
+                </div>
+                <span style={{ fontSize: 13.5, fontWeight: 700, color: "#1e1b4b" }}>
+                    Change Password
+                </span>
+            </div>
+        )}
+
+        <div
+            className="db-row"
+            style={{
+                padding: "12px 16px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                borderTop: "1px solid #f4f4fa",
+            }}
+            onClick={() => {
+                localStorage.clear();
+                navigate("/");
+            }}
+        >
+            <div style={{
+                width: 30, height: 30, borderRadius: 9,
+                background: "#fff1f2",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+            }}>
+                <LogOut size={14} color="#dc2626" />
+            </div>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: "#dc2626" }}>
+                Logout
+            </span>
+        </div>
+    </div>
+}
 </div>
           {/* Bell Notification — admin only */}
 {isAdmin && (
