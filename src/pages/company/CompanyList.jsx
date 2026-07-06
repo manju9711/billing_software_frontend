@@ -208,15 +208,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { API_BASE_URL } from "../../services/api";
-import { Pencil,  Power, Building2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import TablePagination from "../../components/TablePagination";
+import { Pencil,  Power, Building2, Search } from "lucide-react";
 
-const ITEMS_PER_PAGE = 5;
+const DEFAULT_PAGE_SIZE = 10;
 
 export default function CompanyList() {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   // const [deleteId, setDeleteId] = useState(null);
 
   const MAX_COMPANIES = 3;
@@ -310,12 +312,17 @@ const res = await api.post(
     c.gstin?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
-  const paginated = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+  const paginated = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const handleSearch = (val) => {
     setSearch(val);
+    setCurrentPage(1);
+  };
+
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
     setCurrentPage(1);
   };
 
@@ -648,6 +655,18 @@ const res = await api.post(
 
         {/* Table card */}
         <div className="cl-card">
+          <div style={{ padding: "16px 20px 0" }}>
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setCurrentPage}
+              itemLabel="companies"
+              position="top"
+            />
+          </div>
            <div className="cl-table-wrap">
           <table className="cl-table">
             <thead  className="bg-blue-600">
@@ -682,7 +701,7 @@ const res = await api.post(
                     {/* Serial */}
                     <td className="cl-td">
                       <span className="cl-badge cl-badge-gray">
-                        {(safePage - 1) * ITEMS_PER_PAGE + idx + 1}
+                        {(safePage - 1) * pageSize + idx + 1}
                       </span>
                     </td>
 
@@ -759,51 +778,16 @@ const res = await api.post(
           </table>
 </div>
           {/* Pagination */}
-          {filtered.length > ITEMS_PER_PAGE && (
-            <div className="cl-pagination">
-              <p className="cl-page-info">
-                Showing <strong>{(safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}</strong> of <strong>{filtered.length}</strong> companies
-              </p>
-              <div className="cl-page-btns">
-                <button
-                  className="cl-page-btn"
-                  disabled={safePage === 1}
-                  onClick={() => setCurrentPage(p => p - 1)}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(p => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                  .reduce((acc, p, i, arr) => {
-                    if (i > 0 && arr[i - 1] !== p - 1) acc.push("...");
-                    acc.push(p);
-                    return acc;
-                  }, [])
-                  .map((item, i) =>
-                    item === "..." ? (
-                      <span key={`dots-${i}`} style={{padding:"0 4px", color:"#94a3b8", fontSize:13}}>…</span>
-                    ) : (
-                      <button
-                        key={item}
-                        className={`cl-page-btn ${safePage === item ? "active" : ""}`}
-                        onClick={() => setCurrentPage(item)}
-                      >
-                        {item}
-                      </button>
-                    )
-                  )
-                }
-
-                <button
-                  className="cl-page-btn"
-                  disabled={safePage === totalPages}
-                  onClick={() => setCurrentPage(p => p + 1)}
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
+          {filtered.length > 0 && (
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setCurrentPage}
+              itemLabel="companies"
+            />
           )}
         
 </div>

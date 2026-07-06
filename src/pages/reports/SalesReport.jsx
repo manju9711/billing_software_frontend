@@ -1853,9 +1853,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import TablePagination from "../../components/TablePagination";
 
 import {
-  FileText, Search, ChevronLeft, ChevronRight,
+  FileText, Search,
   Eye, Receipt, Download, Filter, X, FileDown, TrendingUp,
   PackageX, Boxes,
 } from "lucide-react";
@@ -2139,6 +2140,7 @@ export default function Reports() {
   const [loading,       setLoading]       = useState(false);
   const [search,        setSearch]        = useState("");
   const [currentPage,   setCurrentPage]   = useState(1);
+  const [pageSize,      setPageSize]      = useState(10);
   const [showFilter,    setShowFilter]    = useState(false);
 
   /* filter fields (invoice filter — company/brand removed, see
@@ -2151,8 +2153,6 @@ export default function Reports() {
 
   /* checkbox */
   const [checkedIds, setCheckedIds] = useState(new Set());
-
-  const recordsPerPage = 10;
 
   /* ── fetch companies by admin ── */
   useEffect(() => {
@@ -2236,10 +2236,14 @@ export default function Reports() {
   );
 
   /* ── pagination ── */
-  const totalPages   = Math.ceil(filtered.length / recordsPerPage);
-  const indexOfFirst = (currentPage - 1) * recordsPerPage;
-  const current      = filtered.slice(indexOfFirst, indexOfFirst + recordsPerPage);
-  const goTo         = p => setCurrentPage(Math.max(1, Math.min(p, totalPages)));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginated = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const startIndex = (safePage - 1) * pageSize;
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1);
+  };
 
   /* ── applied filter count ── */
   const appliedCount = [
@@ -2274,20 +2278,20 @@ export default function Reports() {
   };
 
   const allCurrentChecked =
-    current.length > 0 &&
-    current.every(inv => checkedIds.has(inv.invoice_no));
+    paginated.length > 0 &&
+    paginated.every(inv => checkedIds.has(inv.invoice_no));
 
   const toggleAll = () => {
     if (allCurrentChecked) {
       setCheckedIds(prev => {
         const next = new Set(prev);
-        current.forEach(inv => next.delete(inv.invoice_no));
+        paginated.forEach(inv => next.delete(inv.invoice_no));
         return next;
       });
     } else {
       setCheckedIds(prev => {
         const next = new Set(prev);
-        current.forEach(inv => next.add(inv.invoice_no));
+        paginated.forEach(inv => next.add(inv.invoice_no));
         return next;
       });
     }
@@ -2721,6 +2725,21 @@ export default function Reports() {
       }}>
         <div style={{ height:4, background:"linear-gradient(90deg,#4338ca,#6366f1,#818cf8)" }} />
 
+        {filtered.length > 0 && (
+          <div style={{ padding:"16px 20px 0" }}>
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setCurrentPage}
+              itemLabel="invoices"
+              position="top"
+            />
+          </div>
+        )}
+
         <div style={{ overflowX:"auto" }}>
           <table style={{ width:"100%", borderCollapse:"collapse", minWidth:1230 }}>
             <thead>
@@ -2751,7 +2770,7 @@ export default function Reports() {
                     Loading…
                   </td>
                 </tr>
-              ) : current.length > 0 ? current.map((inv, i) => {
+              ) : paginated.length > 0 ? paginated.map((inv, i) => {
                 const mb = methodBadge(inv.payment_method);
                 const sb = statusBadge(inv.payment_status);
                 const isChecked = checkedIds.has(inv.invoice_no);
@@ -2772,7 +2791,7 @@ export default function Reports() {
                       />
                     </td>
 
-                    <td style={{ padding:"13px 16px" }}>{indexOfFirst + i + 1}</td>
+                    <td style={{ padding:"13px 16px" }}>{startIndex + i + 1}</td>
 
                     <td style={{ padding:"13px 16px" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -2855,45 +2874,16 @@ export default function Reports() {
       </div>
 
       {/* PAGINATION */}
-      {totalPages > 1 && (
-        <div style={{
-          display:"flex", alignItems:"center",
-          justifyContent:"space-between", marginTop:18,
-        }}>
-          <button className="rp-pg-btn" onClick={() => goTo(currentPage - 1)}
-            disabled={currentPage === 1}
-            style={{
-              display:"flex", alignItems:"center", gap:6,
-              padding:"8px 16px", background:"#fff",
-              border:"1px solid #dbeafe", borderRadius:10,
-              cursor:"pointer", fontFamily:FONT,
-            }}>
-            <ChevronLeft size={15} /> Prev
-          </button>
-
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center" }}>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-              <button key={p} onClick={() => goTo(p)} className="rp-pg-btn" style={{
-                width:36, height:36, borderRadius:10,
-                border:"1px solid #dbeafe",
-                background: currentPage === p ? INDIGO : "#fff",
-                color: currentPage === p ? "#fff" : INDIGO,
-                fontWeight:700, cursor:"pointer", fontFamily:FONT,
-              }}>{p}</button>
-            ))}
-          </div>
-
-          <button className="rp-pg-btn" onClick={() => goTo(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            style={{
-              display:"flex", alignItems:"center", gap:6,
-              padding:"8px 16px", background:"#fff",
-              border:"1px solid #dbeafe", borderRadius:10,
-              cursor:"pointer", fontFamily:FONT,
-            }}>
-            Next <ChevronRight size={15} />
-          </button>
-        </div>
+      {filtered.length > 0 && (
+        <TablePagination
+          currentPage={safePage}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
+          onPageChange={setCurrentPage}
+          itemLabel="invoices"
+        />
       )}
     </div>
   );

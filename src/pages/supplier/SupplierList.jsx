@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import TablePagination from "../../components/TablePagination";
 
 import {
   Pencil,
-  ChevronLeft,
-  ChevronRight,
   Phone,
   MapPin,
 } from "lucide-react";
 
-const ITEMS_PER_PAGE = 5;
+const DEFAULT_PAGE_SIZE = 10;
 
 export default function SupplierList() {
 
@@ -20,6 +19,7 @@ export default function SupplierList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(
@@ -99,7 +99,10 @@ export default function SupplierList() {
   });
 };
 
-  
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1);
+  };
 
   const filtered = suppliers.filter((s) => {
     const q = search.toLowerCase();
@@ -112,11 +115,11 @@ export default function SupplierList() {
     );
   });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const paginated = filtered.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
+    (safePage - 1) * pageSize,
+    safePage * pageSize
   );
 
   return (
@@ -278,6 +281,18 @@ export default function SupplierList() {
         </div>
 
         <div className="sl-card">
+          <div style={{ padding: "16px 20px 0" }}>
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setCurrentPage}
+              itemLabel="suppliers"
+              position="top"
+            />
+          </div>
           <div className="sl-table-wrap">
             <table className="sl-table">
               <thead>
@@ -304,7 +319,7 @@ export default function SupplierList() {
                   paginated.map((s, i) => (
                     <tr key={s.id}>
                       <td>
-                        <div className="sl-index">{(safePage - 1) * ITEMS_PER_PAGE + i + 1}</div>
+                        <div className="sl-index">{(safePage - 1) * pageSize + i + 1}</div>
                       </td>
 
                       <td>
@@ -372,62 +387,16 @@ export default function SupplierList() {
             </table>
           </div>
 
-          {filtered.length > ITEMS_PER_PAGE && (
-            <div
-              style={{
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-                padding: "16px 20px", borderTop: "1px solid #e2e8f0",
-                background: "#fafbff", flexWrap: "wrap", gap: 10,
-              }}
-            >
-              <div style={{ fontSize: 13, color: "#64748b" }}>
-                Showing{" "}
-                <strong>
-                  {(safePage - 1) * ITEMS_PER_PAGE + 1}–
-                  {Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}
-                </strong>{" "}
-                of <strong>{filtered.length}</strong> suppliers
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <button
-                  disabled={safePage === 1}
-                  onClick={() => setCurrentPage((p) => p - 1)}
-                  className="sl-page-btn"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                  .reduce((acc, p, i, arr) => {
-                    if (i > 0 && arr[i - 1] !== p - 1) acc.push("...");
-                    acc.push(p);
-                    return acc;
-                  }, [])
-                  .map((item, i) =>
-                    item === "..." ? (
-                      <span key={i} style={{ padding: "0 5px", color: "#94a3b8" }}>…</span>
-                    ) : (
-                      <button
-                        key={item}
-                        onClick={() => setCurrentPage(item)}
-                        className={`sl-page-btn ${safePage === item ? "active" : ""}`}
-                      >
-                        {item}
-                      </button>
-                    )
-                  )}
-
-                <button
-                  disabled={safePage === totalPages}
-                  onClick={() => setCurrentPage((p) => p + 1)}
-                  className="sl-page-btn"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
+          {filtered.length > 0 && (
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setCurrentPage}
+              itemLabel="suppliers"
+            />
           )}
         </div>
       </div>

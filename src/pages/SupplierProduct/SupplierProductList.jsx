@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import api from "../../services/api";
+import TablePagination from "../../components/TablePagination";
 import Barcode from "react-barcode";
 import { Pencil, ArrowLeft, Plus } from "lucide-react";
 
@@ -14,8 +15,9 @@ export default function SupplierProductList() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [pageSize, setPageSize] = useState(10);
 
-  const ITEMS_PER_PAGE = 10;
+  const DEFAULT_PAGE_SIZE = 10;
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -39,12 +41,17 @@ export default function SupplierProductList() {
     p.product_name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const paginated = filtered.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
+    (safePage - 1) * pageSize,
+    safePage * pageSize
   );
+
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1);
+  };
 
   const stockBadge = (stock) => {
     if (stock <= 0) return { cls: "pl-badge-out", label: "Out" };
@@ -116,11 +123,26 @@ export default function SupplierProductList() {
             className="pl-search"
             placeholder="Search products..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
 
         <div className="pl-card">
+          <div style={{ padding: "16px 20px 0" }}>
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setCurrentPage}
+              itemLabel="products"
+              position="top"
+            />
+          </div>
           <table className="pl-table">
             <thead>
               <tr>
@@ -145,7 +167,7 @@ export default function SupplierProductList() {
                   const sb = stockBadge(p.stock);
                   return (
                     <tr key={p.id}>
-                      <td><span className="pl-index">{(safePage-1)*ITEMS_PER_PAGE+i+1}</span></td>
+                      <td><span className="pl-index">{(safePage - 1) * pageSize + i + 1}</span></td>
                       <td>
                         <div className="pl-prod-name">{p.product_name}</div>
                         <div className="pl-prod-cat">{p.category_name || "No Category"}</div>
@@ -181,25 +203,16 @@ export default function SupplierProductList() {
             </tbody>
           </table>
 
-          {!loading && filtered.length > ITEMS_PER_PAGE && (
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderTop:"1px solid #f1f5f9", background:"#f8fbff" }}>
-              <span style={{ fontSize:13, color:"#64748b" }}>
-                Showing <b>{(safePage-1)*ITEMS_PER_PAGE+1}–{Math.min(safePage*ITEMS_PER_PAGE, filtered.length)}</b> of <b>{filtered.length}</b>
-              </span>
-              <div style={{ display:"flex", gap:6 }}>
-                <button onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={safePage===1}
-                  style={{ width:34, height:34, borderRadius:10, border:"1px solid #e2e8f0", background:"#fff", cursor:safePage===1?"not-allowed":"pointer", opacity:safePage===1?0.5:1 }}>‹</button>
-                {Array.from({ length: totalPages }, (_, i) => i+1).map(p => (
-                  <button key={p} onClick={() => setCurrentPage(p)} style={{
-                    width:34, height:34, borderRadius:10, border:"1px solid #e2e8f0",
-                    background:safePage===p?"#2563eb":"#fff", color:safePage===p?"#fff":"#374151",
-                    fontWeight:700, fontSize:13, cursor:"pointer",
-                  }}>{p}</button>
-                ))}
-                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={safePage===totalPages}
-                  style={{ width:34, height:34, borderRadius:10, border:"1px solid #e2e8f0", background:"#fff", cursor:safePage===totalPages?"not-allowed":"pointer", opacity:safePage===totalPages?0.5:1 }}>›</button>
-              </div>
-            </div>
+          {!loading && filtered.length > 0 && (
+            <TablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onPageChange={setCurrentPage}
+              itemLabel="products"
+            />
           )}
         </div>
       </div>

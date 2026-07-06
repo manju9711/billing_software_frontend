@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
+import TablePagination from "../../components/TablePagination";
 import {
   Search,
   Building2,
   Check,
   X,
   Users,
-   ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 
-const ITEMS_PER_PAGE = 5;
+const DEFAULT_PAGE_SIZE = 10;
 
 export default function CompanyRequest() {
   const [requests, setRequests] = useState([]);
@@ -18,6 +17,7 @@ export default function CompanyRequest() {
   const [actionLoading, setActionLoading] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const fetchRequests = async () => {
     try {
@@ -120,7 +120,7 @@ export default function CompanyRequest() {
 
   const totalPages = Math.max(
   1,
-  Math.ceil(filteredRequests.length / ITEMS_PER_PAGE)
+  Math.ceil(filteredRequests.length / pageSize)
 );
 
 const safePage = Math.min(
@@ -129,9 +129,14 @@ const safePage = Math.min(
 );
 
 const paginatedRequests = filteredRequests.slice(
-  (safePage - 1) * ITEMS_PER_PAGE,
-  safePage * ITEMS_PER_PAGE
+  (safePage - 1) * pageSize,
+  safePage * pageSize
 );
+
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1);
+  };
 
   return (
     <div
@@ -381,7 +386,7 @@ const paginatedRequests = filteredRequests.slice(
       }}
     >
       {/* Request ID #{item.id} */}
-      #{(safePage - 1) * ITEMS_PER_PAGE + index + 1}
+      #{(safePage - 1) * pageSize + index + 1}
  • Request ID #{item.id}
     </div>
   </div>
@@ -472,156 +477,17 @@ const paginatedRequests = filteredRequests.slice(
           ))
         )}
       
-      {filteredRequests.length > ITEMS_PER_PAGE && (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "18px 24px",
-      borderTop: "1px solid #eef2f7",
-      background: "#fafbff",
-      flexWrap: "wrap",
-      gap: 10,
-    }}
-  >
-    <div
-      style={{
-        fontSize: 14,
-        color: "#64748b",
-      }}
-    >
-      Showing{" "}
-      <strong>
-        {(safePage - 1) * ITEMS_PER_PAGE + 1}-
-        {Math.min(
-          safePage * ITEMS_PER_PAGE,
-          filteredRequests.length
-        )}
-      </strong>{" "}
-      of{" "}
-      <strong>{filteredRequests.length}</strong>{" "}
-      requests
-    </div>
-
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-      }}
-    >
-      <button
-        disabled={safePage === 1}
-        onClick={() =>
-          setCurrentPage((p) => p - 1)
-        }
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          border: "1px solid #dbe2ea",
-          background: "#fff",
-          cursor:
-            safePage === 1
-              ? "not-allowed"
-              : "pointer",
-          opacity: safePage === 1 ? 0.45 : 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ChevronLeft size={16} />
-      </button>
-
-      {Array.from(
-        { length: totalPages },
-        (_, i) => i + 1
-      )
-        .filter(
-          (p) =>
-            p === 1 ||
-            p === totalPages ||
-            Math.abs(p - safePage) <= 1
-        )
-        .reduce((acc, p, i, arr) => {
-          if (i > 0 && arr[i - 1] !== p - 1)
-            acc.push("...");
-          acc.push(p);
-          return acc;
-        }, [])
-        .map((item, i) =>
-          item === "..." ? (
-            <span
-              key={i}
-              style={{
-                padding: "0 5px",
-                color: "#94a3b8",
-              }}
-            >
-              …
-            </span>
-          ) : (
-            <button
-              key={item}
-              onClick={() =>
-                setCurrentPage(item)
-              }
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                border:
-                  safePage === item
-                    ? "none"
-                    : "1px solid #dbe2ea",
-                background:
-                  safePage === item
-                    ? "linear-gradient(135deg,#2563eb,#3b82f6)"
-                    : "#fff",
-                color:
-                  safePage === item
-                    ? "#fff"
-                    : "#475569",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              {item}
-            </button>
-          )
-        )}
-
-      <button
-        disabled={safePage === totalPages}
-        onClick={() =>
-          setCurrentPage((p) => p + 1)
-        }
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          border: "1px solid #dbe2ea",
-          background: "#fff",
-          cursor:
-            safePage === totalPages
-              ? "not-allowed"
-              : "pointer",
-          opacity:
-            safePage === totalPages
-              ? 0.45
-              : 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ChevronRight size={16} />
-      </button>
-    </div>
-  </div>
-)}
+      {filteredRequests.length > 0 && (
+        <TablePagination
+          currentPage={safePage}
+          totalPages={totalPages}
+          totalItems={filteredRequests.length}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
+          onPageChange={setCurrentPage}
+          itemLabel="requests"
+        />
+      )}
       </div>
     
     </div>
