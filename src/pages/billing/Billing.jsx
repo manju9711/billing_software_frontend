@@ -2414,13 +2414,27 @@ if (
       showToast("Enter received amount!", "error"); return;
     }
 
+    // if (paymentMethod === "credit" && customer.credit_enabled == "1") {
+    //   const limit = parseFloat(customer.credit_limit) || 0;
+    //   if (limit > 0 && total > limit) {
+    //     showToast(`Purchase ₹${total.toFixed(2)} exceeds credit limit ₹${limit.toLocaleString()}!`, "error");
+    //     return;
+    //   }
+    // }
     if (paymentMethod === "credit" && customer.credit_enabled == "1") {
-      const limit = parseFloat(customer.credit_limit) || 0;
-      if (limit > 0 && total > limit) {
-        showToast(`Purchase ₹${total.toFixed(2)} exceeds credit limit ₹${limit.toLocaleString()}!`, "error");
-        return;
-      }
-    }
+  const limit = parseFloat(customer.credit_limit) || 0;
+  const existingPending = parseFloat(customer.pending_amount) || 0;
+  const projectedTotal = existingPending + total;   // 👈 previous pending + new bill
+
+  if (limit > 0 && projectedTotal > limit) {
+    const available = Math.max(limit - existingPending, 0);
+    showToast(
+      `Credit limit reached! Available: ₹${available.toFixed(2)} (Limit: ₹${limit.toLocaleString()}, Already pending: ₹${existingPending.toFixed(2)})`,
+      "error"
+    );
+    return;
+  }
+}
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -2447,7 +2461,8 @@ if (!selectedCompany) {
         total_amount:   total,
         gst_type:       billType === "gst_bill" ? "with_gst" : "without_gst",
         gst_no:         billType === "gst_bill" ? customer.gst_no : "",
-        paid_amount:    paymentMethod === "credit" ? 0 : received,
+        // paid_amount:    paymentMethod === "credit" ? 0 : received,
+        paid_amount:    received,
         payment_method: paymentMethod,
         payment_type:   paymentMethod === "credit" ? "credit" : "cash",
       });
@@ -3421,7 +3436,7 @@ if (!selectedCompany) {
 )}
 
 {/* Credit outstanding — still shown for credit method */}
-{paymentMethod === "credit" && (
+{/* {paymentMethod === "credit" && (
   <div style={{
     display:"flex", justifyContent:"space-between", alignItems:"center",
     padding:"12px 16px", borderRadius:12, marginBottom:20,
@@ -3429,6 +3444,19 @@ if (!selectedCompany) {
   }}>
     <span style={{ fontWeight:700, color:"#dc2626", fontSize:14 }}>Outstanding Amount</span>
     <span style={{ fontWeight:900, fontSize:16, color:"#dc2626" }}>₹{total.toFixed(2)}</span>
+  </div>
+)} */}
+{/* Credit outstanding — still shown for credit method */}
+{paymentMethod === "credit" && (
+  <div style={{
+    display:"flex", justifyContent:"space-between", alignItems:"center",
+    padding:"12px 16px", borderRadius:12, marginBottom:20,
+    background:"#fef2f2", border:"1.5px solid #fecaca",
+  }}>
+    <span style={{ fontWeight:700, color:"#dc2626", fontSize:14 }}>Outstanding Amount</span>
+    <span style={{ fontWeight:900, fontSize:16, color:"#dc2626" }}>
+      ₹{Math.max(total - received, 0).toFixed(2)}
+    </span>
   </div>
 )}
             {/* Generate Button */}
