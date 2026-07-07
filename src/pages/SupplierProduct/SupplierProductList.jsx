@@ -97,7 +97,7 @@ export default function SupplierProductList() {
       <div className="pl-page">
        <div className="pl-header">
           <div className="pl-header-left">
-            <button className="pl-back-btn" onClick={() => navigate("/suppliers")}>
+            <button className="pl-back-btn" onClick={() => navigate("/supplier")}>
               <ArrowLeft size={16} />
             </button>
             <div>
