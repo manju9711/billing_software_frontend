@@ -1843,7 +1843,7 @@ const GLOBAL_CSS = `
   padding: 0 40px 0 14px;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  background: #ffffff;
+  backgroundC: #ffffff;
   color: #1e293b;
   font-size: 14px;
   font-weight: 600;
@@ -2643,7 +2643,7 @@ if (!selectedCompany) {
       }}
       style={{
         height: 44,
-        background: "#fff",
+        backgroundColor: "#fff",
         borderRadius: 12,
       }}
     >
@@ -2684,7 +2684,7 @@ if (!selectedCompany) {
       onChange={(e) => setBillType(e.target.value)}
       style={{
         height: 44,
-        background: "#fff",
+        backgroundColor: "#fff",
         borderRadius: 12,
       }}
     >
