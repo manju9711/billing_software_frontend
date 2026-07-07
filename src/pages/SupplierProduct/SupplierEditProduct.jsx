@@ -234,6 +234,7 @@ const loadCompanies = async (admin_id) => {
 
   const res = await api.post("/product/update.php", {
   id,
+  supplier_id: supplierId,  
   product_name: form.name,
   product_code: form.product_code,
   category_id: form.category_id,
