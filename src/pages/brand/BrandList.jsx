@@ -138,11 +138,17 @@ export default function BrandList() {
     }
   };
 
-  const filtered = brands.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.brand_category.toLowerCase().includes(search.toLowerCase())
-  );
+  // const filtered = brands.filter((s) =>
+  //   s.name.toLowerCase().includes(search.toLowerCase()) ||
+  //   s.brand_category.toLowerCase().includes(search.toLowerCase())
+  // );
 
+
+  const filtered = brands.filter((s) =>
+  (s.name || "").toLowerCase().includes(search.toLowerCase()) ||
+  (s.category_name || "").toLowerCase().includes(search.toLowerCase()) ||
+  (s.subcategory_name || "").toLowerCase().includes(search.toLowerCase())
+);
   const totalPages = Math.max(
     1,
     Math.ceil(filtered.length / pageSize)

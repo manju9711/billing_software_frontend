@@ -2297,29 +2297,47 @@ api.get(
   };
 
   /* ── PRODUCT ROW LOGIC ── */
+  // const handleSearch = (value, index) => {
+  //   updateRow(index, "name", value);
+  //   const filtered = value
+  // ? products.filter(
+  //     (p) =>
+  //       p.status === "active" &&
+  //       p.stock > 0 &&
+  //       p.product_name
+  //         .toLowerCase()
+  //         .includes(value.toLowerCase())
+  //   )
+  // : products.filter(
+  //     (p) =>
+  //       p.status === "active" &&
+  //       p.stock > 0
+  //   );
+  //   setSuggestions(filtered);
+  //   setActiveIndex(index);
+  // };
+
+
   const handleSearch = (value, index) => {
     updateRow(index, "name", value);
-    // const filtered = value
-    //   ? products.filter(p => p.stock > 0 && p.product_name.toLowerCase().includes(value.toLowerCase()))
-    //   : products.filter(p => p.stock > 0);
     const filtered = value
-  ? products.filter(
-      (p) =>
-        p.status === "active" &&
-        p.stock > 0 &&
-        p.product_name
-          .toLowerCase()
-          .includes(value.toLowerCase())
-    )
-  : products.filter(
-      (p) =>
-        p.status === "active" &&
-        p.stock > 0
-    );
+      ? products.filter(
+          (p) =>
+            p.status === "active" &&
+            p.stock > 0 &&
+            (
+              p.product_name.toLowerCase().includes(value.toLowerCase()) ||
+              (p.barcode && p.barcode.toLowerCase().includes(value.toLowerCase()))
+            )
+        )
+      : products.filter(
+          (p) =>
+            p.status === "active" &&
+            p.stock > 0
+        );
     setSuggestions(filtered);
     setActiveIndex(index);
-  };
-
+};
   const selectProduct = async (product, index) => {
     // const user = JSON.parse(localStorage.getItem("user"));
     const res  = await api.get("/product/get_by_id.php", {
@@ -3059,7 +3077,7 @@ if (!selectedCompany) {
                   <input
                     className="bill-input"
                     value={r.name}
-                    placeholder="Search product..."
+                    placeholder="Search product name or Barcode..."
                     // onFocus={() => { setSuggestions(products.filter(p => p.stock > 0)); setActiveIndex(i); }}
                     onFocus={() => {
 
