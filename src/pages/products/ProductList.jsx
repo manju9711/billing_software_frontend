@@ -384,15 +384,42 @@ const handleCompanyChange = async(e) => {
         gap:10px;
       }
 
+      // .pl-btn-edit{
+      //   width:34px;
+      //   height:34px;
+      //   border:none;
+      //   border-radius:10px;
+      //   background:#eff6ff;
+      //   color:#2563eb;
+      //   cursor:pointer;
+      // }
+
       .pl-btn-edit{
-        width:34px;
-        height:34px;
-        border:none;
-        border-radius:10px;
-        background:#eff6ff;
-        color:#2563eb;
-        cursor:pointer;
-      }
+  width:36px;
+  height:36px;
+  border:1.5px solid #dbeafe;
+  border-radius:10px;
+  background:#eff6ff;
+  color:#2563eb;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.2s ease;
+  box-shadow:0 1px 3px rgba(37,99,235,0.08);
+}
+
+// .pl-btn-edit:hover{
+//   background:#2563eb;
+//   color:#fff;
+//   border-color:#2563eb;
+//   transform:translateY(-2px);
+//   box-shadow:0 4px 12px rgba(37,99,235,0.35);
+// }
+
+// .pl-btn-edit:active{
+//   transform:translateY(0);
+// }
 
       .pl-switch{
         position:relative;
@@ -698,7 +725,7 @@ const handleCompanyChange = async(e) => {
                               )
                             }
                           >
-                            <Pencil size={15} />
+                            <Pencil size={15}  strokeWidth={2.2}/>
                           </button>
 
                           <label className="pl-switch">

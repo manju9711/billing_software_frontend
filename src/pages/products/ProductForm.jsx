@@ -1,4 +1,4 @@
-//add unit field
+//supplier dropdown
 // import { useEffect, useState } from "react";
 // import { useNavigate } from "react-router-dom";
 // import Barcode from "react-barcode";
@@ -49,6 +49,59 @@
 // const [companies,setCompanies] = useState([]);
 // const [selectedCompany,setSelectedCompany] = useState("");
 
+
+// const [suppliers, setSuppliers] = useState([]);
+// // const [supplierId, setSupplierId] = useState("");
+
+// // useEffect(() => {
+// //   if (selectedCompany) {
+// //     api.get(`/supplier/get_all.php?company_id=${companyId}`)
+// //       .then(res => {
+// //         if (res.data.status) setSuppliers(res.data.data);
+// //       });
+// //   }
+// // }, [companyId]);
+
+
+
+// // const fetchSuppliers = async (company_id) => {
+// //   if (!company_id) {
+// //     setSuppliers([]);
+// //     return;
+// //   }
+// //   try {
+// //     const res = await api.get(`/supplier/get_all.php?company_id=${company_id}`);
+// //     if (res.data.status) {
+// //       setSuppliers(res.data.data);
+// //     } else {
+// //       setSuppliers([]);
+// //     }
+// //   } catch (err) {
+// //     console.log(err);
+// //     setSuppliers([]);
+// //   }
+// // };
+
+// const fetchSuppliers = async (company_id) => {
+//   if (!company_id) {
+//     setSuppliers([]);
+//     return;
+//   }
+//   try {
+//     const res = await api.get(`/supplier/get_all.php?company_id=${company_id}`);
+//     if (res.data.status) {
+//       // Only show active suppliers in the dropdown
+//       const activeSuppliers = res.data.data.filter(s => s.status === "active");
+//       setSuppliers(activeSuppliers);
+//     } else {
+//       setSuppliers([]);
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     setSuppliers([]);
+//   }
+// };
+
 // useEffect(() => {
 
 //   const user = JSON.parse(
@@ -84,7 +137,7 @@
 // };
 //   const [form, setForm] = useState({
 //     name: "", product_code: "", price: "", brand_id: "",
-//   subcategory_id: "", stock: "", gst: "", barcode: "", category_id: "", unit: ""
+//   subcategory_id: "", stock: "", gst: "", barcode: "", category_id: "", unit: "",supplier_id: ""
 //   });
 
 //   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
@@ -256,6 +309,7 @@
 //     fetchCategories(selectedCompany);
 //     fetchCompanyGST(selectedCompany);
 //     fetchProducts(selectedCompany);
+//     fetchSuppliers(selectedCompany); 
 
 // }, [selectedCompany]);
 
@@ -274,14 +328,17 @@
 //     // Reset previous category
 //     setForm(prev => ({
 //         ...prev,
+//         supplier_id: "" ,
 //         category_id: "",
 //          subcategory_id: "",
-//           brand: ""
+//           brand_id: ""
+          
 //     }));
     
 //     fetchCategories(companyId);
 //     fetchCompanyGST(companyId);
 //     fetchProducts(companyId);
+//     fetchSuppliers(companyId); 
 //     setSubCategories([]);
 //     setBrands([]);
 
@@ -295,6 +352,14 @@
 
 //   const handleSubmit = async () => {
 //     if (!form.name.trim())    { show("warn", "Missing Field", "Product name is required."); return; }
+//     if (!form.supplier_id) {
+//   show(
+//     "warn",
+//     "Missing Field",
+//     "Please select a supplier."
+//   );
+//   return;
+// }
 //     if (!form.category_id)    { show("warn", "Missing Field", "Please select a category."); return; }
 //     if (!form.subcategory_id) {
 
@@ -349,6 +414,7 @@
 //         category_id: form.category_id,
 //         subcategory_id: form.subcategory_id,
 //          brand_id: form.brand_id,
+//           supplier_id: form.supplier_id, 
 //         company_id: getCompanyId(),
 //         price: form.price,
 //         stock: form.stock,
@@ -648,7 +714,7 @@
 //             {/* ── Basic Info ── */}
 //             <p className="pf-section">Basic Info</p>
 
-//             <div
+//            <div
 //   style={{
 //     display:"flex",
 //     alignItems:"center",
@@ -661,14 +727,7 @@
 //     boxShadow:"0 4px 16px rgba(37,99,235,.08)"
 //   }}
 // >
-//   <span
-//     style={{
-//       marginRight:"10px",
-//       fontSize:"18px"
-//     }}
-//   >
-//     🏢
-//   </span>
+//   <span style={{marginRight:"10px",fontSize:"18px"}}>🏢</span>
 
 //   <select
 //     value={selectedCompany}
@@ -683,24 +742,45 @@
 //       cursor:"pointer"
 //     }}
 //   >
-//     <option value="">
-//       Select Company
-//     </option>
+//     <option value="">Select Company</option>
 
-//     {companies.map((c) => (
-
-//       <option
-//         key={c.id}
-//         value={c.id}
-//       >
+//     {companies.map((c)=>(
+//       <option key={c.id} value={c.id}>
 //         {c.company_name}
 //       </option>
-
 //     ))}
-
 //   </select>
+// </div>
 
+// <div className="pf-field">
+//   <label className="pf-label">
+//     Supplier <span style={{color:"#ef4444"}}>*</span>
+//   </label>
 
+//   <div className="pf-select-wrap pf-input-wrap">
+//     <span className="pf-input-icon">🚚</span>
+
+//     <select
+//       className="pf-select"
+//       value={form.supplier_id}
+//       onChange={(e)=>set("supplier_id",e.target.value)}
+//       disabled={!selectedCompany}
+//     >
+//       <option value="">
+//         {selectedCompany
+//           ? "Select Supplier"
+//           : "Select Company First"}
+//       </option>
+
+//       {suppliers.map((s)=>(
+//         <option key={s.id} value={s.id}>
+//           {s.supplier_name}
+//         </option>
+//       ))}
+//     </select>
+
+//     <span className="pf-select-arrow">▾</span>
+//   </div>
 // </div>
 
 //             <div className="pf-field">
@@ -873,6 +953,8 @@
 
 // </div>
 
+
+
 //             {/* ── Pricing & Stock ── */}
 //             <p className="pf-section" style={{marginTop:"1.25rem"}}>Pricing & Stock</p>
 
@@ -1024,10 +1106,10 @@
 // }
 
 
-//supplier dropdown
+
+//barcode from backend
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Barcode from "react-barcode";
 import api from "../../services/api";
 
 /* ─── Toast Hook ─────────────────────────────────────────── */
@@ -1067,13 +1149,12 @@ export default function ProductForm() {
   const [subCategories, setSubCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [barcodeKey, setBarcodeKey] = useState(0);
   const [gstEnabled, setGstEnabled] = useState(false);
   const [gstLoading, setGstLoading] = useState(true);
   const { toasts, show, remove } = useToast();
   const [existingCodes, setExistingCodes] = useState([]);
-const [companies,setCompanies] = useState([]);
-const [selectedCompany,setSelectedCompany] = useState("");
+  const [companies,setCompanies] = useState([]);
+  const [selectedCompany,setSelectedCompany] = useState("");
 
 
 const [suppliers, setSuppliers] = useState([]);
@@ -1163,7 +1244,7 @@ const loadCompanies = async(admin_id) => {
 };
   const [form, setForm] = useState({
     name: "", product_code: "", price: "", brand_id: "",
-  subcategory_id: "", stock: "", gst: "", barcode: "", category_id: "", unit: "",supplier_id: ""
+  subcategory_id: "", stock: "", gst: "",category_id: "", unit: "",supplier_id: ""
   });
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
@@ -1370,11 +1451,7 @@ const handleCompanyChange = (e) => {
 
 };
 
-  const generateBarcode = () => {
-    const code = "PRD" + Math.floor(100000 + Math.random() * 900000);
-    setForm(p => ({ ...p, barcode: code }));
-    setBarcodeKey(k => k + 1);
-  };
+
 
   const handleSubmit = async () => {
     if (!form.name.trim())    { show("warn", "Missing Field", "Product name is required."); return; }
@@ -1439,21 +1516,20 @@ if (
         product_code: form.product_code,
         category_id: form.category_id,
         subcategory_id: form.subcategory_id,
-         brand_id: form.brand_id,
-          supplier_id: form.supplier_id, 
+        brand_id: form.brand_id,
+        supplier_id: form.supplier_id, 
         company_id: getCompanyId(),
         price: form.price,
         stock: form.stock,
         gst_percentage: gstEnabled ? form.gst : "",
-        barcode: form.barcode,
         unit: form.unit
       });
-      if (res.data.status) {
-        show("success", "Product Added!", `"${form.name}" saved successfully.`);
-        setTimeout(() => navigate("/products"), 1800);
-      } else {
-        show("error", "Failed", res.data.message || "Something went wrong.");
-      }
+     if (res.data.status) {
+    show("success", "Product Added!", `"${form.name}" saved with barcode ${res.data.barcode}`);
+    setTimeout(() => navigate("/products"), 1800);
+} else {
+    show("error", "Failed", res.data.message || "Something went wrong.");
+}
     } catch (err) {
       console.error(err);
       show("error", "Server Error", "Unable to reach server. Try again.");
@@ -2088,29 +2164,7 @@ if (
               )}
             </div>
 
-            {/* ── Barcode ── */}
-            <div className="pf-divider" />
-            <p className="pf-section">Barcode</p>
-
-            <div className="pf-barcode-row">
-              <div className="pf-barcode-input-wrap">
-                <label className="pf-label">Barcode Number</label>
-                <div className="pf-input-wrap">
-                  <span className="pf-input-icon">｜｜</span>
-                  <input className="pf-input" placeholder="Enter or auto-generate"
-                    value={form.barcode}
-                    onChange={e => set("barcode", e.target.value)} />
-                </div>
-              </div>
-              <button className="pf-gen-btn" onClick={generateBarcode}>⚡ Auto</button>
-            </div>
-
-            {form.barcode && (
-              <div className="pf-barcode-preview" key={barcodeKey}>
-                <p className="pf-barcode-label">Barcode Preview</p>
-                <Barcode value={form.barcode} height={55} fontSize={13} margin={0} />
-              </div>
-            )}
+          
 
             <div className="pf-divider" />
 
