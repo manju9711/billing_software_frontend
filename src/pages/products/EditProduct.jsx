@@ -1609,7 +1609,7 @@ export default function EditProduct() {
             <div className="ep-divider" />
             <p className="ep-section">Barcode</p>
 
-            <div className="ep-barcode-row">
+            {/* <div className="ep-barcode-row">
               <div className="ep-barcode-iw">
                 <label className="ep-label">Barcode Number</label>
                 <div className="ep-input-wrap">
@@ -1620,7 +1620,7 @@ export default function EditProduct() {
                 </div>
               </div>
               <button className="ep-gen-btn" onClick={generateBarcode}>⚡ Auto</button>
-            </div>
+            </div> */}
 
             {form.barcode && (
               <div className="ep-barcode-preview" key={barcodeKey}>
