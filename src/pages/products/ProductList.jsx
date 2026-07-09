@@ -589,7 +589,7 @@ const handleCompanyChange = async(e) => {
               <tr>
                 <th>#</th>
                 <th>Product</th>
-                <th className="center">Supplier</th>
+                
                 <th className="center">HSN Code</th>
                 <th className="center">Price</th>
                 <th className="center">Stock</th>
@@ -647,9 +647,7 @@ const handleCompanyChange = async(e) => {
 
                       </td>
 
-                      <td className="center">
-                      {p.supplier_name || "-"}
-                       </td>
+
 
                       <td className="center">
 

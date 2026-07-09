@@ -1157,57 +1157,6 @@ export default function ProductForm() {
   const [selectedCompany,setSelectedCompany] = useState("");
 
 
-const [suppliers, setSuppliers] = useState([]);
-// const [supplierId, setSupplierId] = useState("");
-
-// useEffect(() => {
-//   if (selectedCompany) {
-//     api.get(`/supplier/get_all.php?company_id=${companyId}`)
-//       .then(res => {
-//         if (res.data.status) setSuppliers(res.data.data);
-//       });
-//   }
-// }, [companyId]);
-
-
-
-// const fetchSuppliers = async (company_id) => {
-//   if (!company_id) {
-//     setSuppliers([]);
-//     return;
-//   }
-//   try {
-//     const res = await api.get(`/supplier/get_all.php?company_id=${company_id}`);
-//     if (res.data.status) {
-//       setSuppliers(res.data.data);
-//     } else {
-//       setSuppliers([]);
-//     }
-//   } catch (err) {
-//     console.log(err);
-//     setSuppliers([]);
-//   }
-// };
-
-const fetchSuppliers = async (company_id) => {
-  if (!company_id) {
-    setSuppliers([]);
-    return;
-  }
-  try {
-    const res = await api.get(`/supplier/get_all.php?company_id=${company_id}`);
-    if (res.data.status) {
-      // Only show active suppliers in the dropdown
-      const activeSuppliers = res.data.data.filter(s => s.status === "active");
-      setSuppliers(activeSuppliers);
-    } else {
-      setSuppliers([]);
-    }
-  } catch (err) {
-    console.log(err);
-    setSuppliers([]);
-  }
-};
 
 useEffect(() => {
 
@@ -1244,7 +1193,7 @@ const loadCompanies = async(admin_id) => {
 };
   const [form, setForm] = useState({
     name: "", product_code: "", price: "", brand_id: "",
-  subcategory_id: "", stock: "", gst: "",category_id: "", unit: "",supplier_id: ""
+  subcategory_id: "", stock: "", gst: "",category_id: "", unit: ""
   });
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
@@ -1416,7 +1365,7 @@ useEffect(() => {
     fetchCategories(selectedCompany);
     fetchCompanyGST(selectedCompany);
     fetchProducts(selectedCompany);
-    fetchSuppliers(selectedCompany); 
+    
 
 }, [selectedCompany]);
 
@@ -1435,7 +1384,7 @@ const handleCompanyChange = (e) => {
     // Reset previous category
     setForm(prev => ({
         ...prev,
-        supplier_id: "" ,
+        
         category_id: "",
          subcategory_id: "",
           brand_id: ""
@@ -1445,7 +1394,7 @@ const handleCompanyChange = (e) => {
     fetchCategories(companyId);
     fetchCompanyGST(companyId);
     fetchProducts(companyId);
-    fetchSuppliers(companyId); 
+   
     setSubCategories([]);
     setBrands([]);
 
@@ -1455,14 +1404,7 @@ const handleCompanyChange = (e) => {
 
   const handleSubmit = async () => {
     if (!form.name.trim())    { show("warn", "Missing Field", "Product name is required."); return; }
-    if (!form.supplier_id) {
-  show(
-    "warn",
-    "Missing Field",
-    "Please select a supplier."
-  );
-  return;
-}
+   
     if (!form.category_id)    { show("warn", "Missing Field", "Please select a category."); return; }
     if (!form.subcategory_id) {
 
@@ -1517,7 +1459,7 @@ if (
         category_id: form.category_id,
         subcategory_id: form.subcategory_id,
         brand_id: form.brand_id,
-        supplier_id: form.supplier_id, 
+        // supplier_id: form.supplier_id, 
         company_id: getCompanyId(),
         price: form.price,
         stock: form.stock,
@@ -1854,36 +1796,7 @@ if (
   </select>
 </div>
 
-<div className="pf-field">
-  <label className="pf-label">
-    Supplier <span style={{color:"#ef4444"}}>*</span>
-  </label>
 
-  <div className="pf-select-wrap pf-input-wrap">
-    <span className="pf-input-icon">🚚</span>
-
-    <select
-      className="pf-select"
-      value={form.supplier_id}
-      onChange={(e)=>set("supplier_id",e.target.value)}
-      disabled={!selectedCompany}
-    >
-      <option value="">
-        {selectedCompany
-          ? "Select Supplier"
-          : "Select Company First"}
-      </option>
-
-      {suppliers.map((s)=>(
-        <option key={s.id} value={s.id}>
-          {s.supplier_name}
-        </option>
-      ))}
-    </select>
-
-    <span className="pf-select-arrow">▾</span>
-  </div>
-</div>
 
             <div className="pf-field">
               <label className="pf-label">Product Name <span style={{color:"#ef4444"}}>*</span></label>
@@ -2184,3 +2097,4 @@ if (
     </>
   );
 }
+
